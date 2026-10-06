@@ -10,7 +10,7 @@ environment variables. Whatever a file host can serve, it can host.
 
 ```
 .nojekyll    index.html   404.html   sw.js   site.webmanifest   _headers
-assets/{converter.js, app.js, style.css, favicon.svg, icon-maskable.svg}
+assets/{converter.js, ui.js, app.js, style.css, favicon.svg, icon-maskable.svg}
 docs/…
 ```
 

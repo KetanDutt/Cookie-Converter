@@ -21,6 +21,7 @@ site.webmanifest        Installable metadata
 _headers                Security headers for Netlify / Cloudflare Pages
 assets/
   converter.js          Pure conversion engine — UMD (browser global + CommonJS)
+  ui.js                 UI primitives (icons, toasts, popover, dialog, tabs, reveal)
   app.js                UI layer: DOM, files, clipboard, theme, toasts
   style.css             Design system: tokens → materials → components
   favicon.svg           Vector favicon
@@ -112,9 +113,13 @@ needs to guess:
 ## The UI (`assets/app.js`)
 
 A single IIFE, no framework, no virtual DOM. It is organised into numbered
-sections: boot guard → elements → constants → helpers → banners/toasts →
-preferences → rendering → actions → live input metadata → theme → output
-toggles → wiring → service worker.
+sections: boot → elements → constants → helpers → state/preferences → render
+helpers → conversion → actions → live input metadata → theme → navigation →
+options popover → dialog & tabs → scroll behaviour → service worker.
+
+The visual primitives it drives live in `assets/ui.js` — icons, toasts,
+popovers, dialogs, tabs, scroll reveal, pointer shine and the number roll — so
+`app.js` reads as application logic rather than DOM plumbing.
 
 Design notes:
 
@@ -137,13 +142,15 @@ Design notes:
 * **Timers are injected-style.** The DOM stub replaces `setTimeout` with a
   controllable clock, which is why toast and debounce behaviour is testable and
   never keeps Node alive.
-* **No markup from data.** Icons come from CSS masks; all user data is written
-  with `textContent`; `npm run check` fails if a dynamic `innerHTML` reappears.
+* **No markup from data.** Icons come from an inline `<symbol>` sprite addressed
+  through `createElementNS`; all user data is written with `textContent`;
+  `npm run check` fails if a dynamic `innerHTML` reappears, and it also checks
+  that every icon name the runtime asks for exists in the sprite.
 * **Accessibility** is built in, not bolted on: labelled regions, `role="status"`
   live regions for banners and toasts, `aria-pressed` on the segmented control,
-  a real `<table>` with `<caption>` and `scope="col"`, a skip link, visible focus
-  rings, and keyboard equivalents for every pointer interaction (including the
-  dropzone).
+  `aria-expanded` on the options popover, a real ARIA tablist in the guide, a real
+  `<table>` with `<caption>` and `scope="col"`, a skip link, visible focus rings,
+  and keyboard equivalents for every pointer interaction (including the dropzone).
 
 ## Testing strategy
 
@@ -152,9 +159,9 @@ Two suites, both dependency-free (`node:test`):
 * `tests/converter.test.js` (61 cases) drives the engine directly: every format,
   every alias, selection rules, value validation, limits, prototype-pollution
   resistance, and a 20 000-row performance smoke test.
-* `tests/app.test.js` (29 cases) boots the real `app.js` inside
-  `tests/helpers/dom-stub.js`, a ~450-line DOM that reads its element ids from
-  `index.html`. Integration bugs a static app normally ships with — typo'd ids,
+* `tests/app.test.js` (46 cases) boots the real `converter.js`, `ui.js` and
+  `app.js` inside `tests/helpers/dom-stub.js`, a mini DOM that parses the real
+  `index.html` and provides a deterministic clock. Integration bugs a static app normally ships with — typo'd ids,
   crashes in `render()`, a handler that never fires — fail the suite.
 
 `scripts/check.js` covers the rest of the "static site rot": version drift
@@ -182,7 +189,7 @@ Because the value of this tool is *auditability*: four files you can read in a
 sitting, no install step, and a deployment that is literally `git push`. A build
 pipeline would add a supply chain without adding correctness. The trade-off is
 that the project relies on its own checks (`npm run verify`) instead of a
-compiler — which is precisely what `scripts/check.js` and the 92 tests are for.
+compiler — which is precisely what `scripts/check.js` and the 107 tests are for.
 
 ## Extension points
 

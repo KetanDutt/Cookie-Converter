@@ -109,6 +109,7 @@ site.webmanifest      Installable app metadata
 _headers              CSP + security headers for Netlify / Cloudflare Pages
 assets/
   converter.js        Pure conversion engine (browser global + CommonJS)
+  ui.js               UI primitives — icons, toasts, popover, dialog, tabs
   app.js              UI wiring: DOM, files, clipboard, theme, toasts
   style.css           Liquid-Glass design system (tokens → materials → components)
   favicon.svg         Inline-vector favicon
@@ -130,7 +131,7 @@ has no runtime or development dependencies, by design.
 
 ```bash
 npm run check     # versions, DOM wiring, CSP, docs links, theme tokens, hygiene
-npm test          # 92 tests: engine + UI integration
+npm test          # 107 tests: engine + UI integration
 npm run verify    # both, in one go — the project's only gate
 npm run serve     # static preview on :8080 (Python or `serve:node`)
 ```

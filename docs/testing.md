@@ -3,7 +3,7 @@
 ```bash
 npm run verify     # the whole gate: consistency checks, then the test suite
 npm run check      # scripts/check.js only
-npm test           # the 92 tests
+npm test           # the 107 tests
 npm run test:watch # re-run on change
 ```
 
@@ -57,16 +57,20 @@ Coverage by area:
 * **API**: `buildPayload` error codes, custom `required`/`expectedDomains`,
   optional extras, `auditRequired`, defensive copies, empty input.
 
-### 3 · `tests/app.test.js` — UI integration (29 cases)
+### 3 · `tests/app.test.js` — UI integration (46 cases)
 
-`assets/app.js` is executed for real inside `tests/helpers/dom-stub.js`:
+`assets/converter.js`, `assets/ui.js` and `assets/app.js` are executed for real
+inside one `node:vm` realm built by `tests/helpers/dom-stub.js`:
 
-* the stub reads every `id="…"` from `index.html`, so the UI tests fail if the
-  markup and the wiring disagree;
+* the stub **parses the real `index.html`** (tags, attributes, comments, void
+  elements, text nodes, skipped `script`/`style`/`svg` subtrees), so the UI tests
+  fail if the markup and the wiring disagree;
 * it implements the DOM surface the app touches (element tree, bubbling events,
-  `closest`, `classList`, `dataset`, `textContent`, `document.createDocumentFragment`);
-* `setTimeout` is replaced by a deterministic clock, so toast and debounce
-  behaviour is testable and nothing keeps Node alive.
+  `closest`, `contains`, `classList`, `dataset`, `textContent`, style properties,
+  `document.createDocumentFragment`, `showModal`/`close`, `IntersectionObserver`);
+* `setTimeout`/`requestAnimationFrame` are replaced by a deterministic clock, so
+  toast, debounce, popover and dialog behaviour is testable and nothing keeps
+  Node alive.
 
 Covered: boot and version banner, successful and failing conversions, checklist
 statuses, masked/revealed values, per-cell reveal, filtering and the required-only
@@ -77,14 +81,23 @@ pretty/minified toggle, clipboard with fallback, both downloads, theming
 (system → explicit → stored), toast dedupe/cap/dismiss, `Ctrl`+`Enter`,
 `Escape`, sample loading, `Clear`, and "no cookie value ever reaches storage".
 
+Design-layer cases added with the glass redesign: scroll-spy navigation and the
+gliding indicator, header veil and back-to-top visibility, the options popover
+(opening, outside click, `Escape`, both triggers, reset, persistence), the guide
+dialog from all three entry points, ARIA tab behaviour (click, arrow keys,
+wrapping), empty-state hand-off and return, every sample chip detecting its own
+format, the coverage meter, the large-input skeleton, the Undo toast, the mobile
+bar's Convert mirror, scroll reveal, and accessible names on icon-only controls.
+
 ---
 
 ## The DOM stub
 
-`tests/helpers/dom-stub.js` (~450 lines) is intentionally minimal and explicit:
-it implements only what the app uses, and it is not a general-purpose DOM
-implementation. If you add a DOM API to `app.js`, add it there too — a missing
-method fails loudly with a clear stack trace rather than silently passing.
+`tests/helpers/dom-stub.js` is intentionally minimal and explicit: it parses
+`index.html` into a stub tree and implements only what the app uses — it is not a
+general-purpose DOM. If you add a DOM API to `app.js` or `assets/ui.js`, add it
+there too; a missing method fails loudly with a clear stack trace rather than
+silently passing.
 
 ```js
 const { createRealm, makeFile } = require('./helpers/dom-stub.js');

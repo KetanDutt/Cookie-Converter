@@ -48,7 +48,7 @@ makes the engine a general cookie-jar normaliser. See [api.md](api.md).
 
 **Why is there no TypeScript / framework / bundler?**
 Auditability. The whole app is four readable files, the tests run with `node`
-alone, and deployment is a `git push`. `npm run check` and 92 tests take over the
+alone, and deployment is a `git push`. `npm run check` and 107 tests take over the
 job a compiler would do here.
 
 **Does it work offline / can I install it?**
