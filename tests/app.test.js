@@ -94,6 +94,20 @@ test('a failing conversion shows the error, hint and a missing checklist row', (
   assert.equal(document.getElementById('output').hidden, true);
 });
 
+test('a failed conversion wipes the previous payload from the output field', () => {
+  const realm = boot();
+  const { document } = realm;
+  document.getElementById('input').value = FULL;
+  document.getElementById('convert').click();
+  assert.match(document.getElementById('output').value, /sapisid/);
+
+  document.getElementById('input').value = 'SID=only-this';
+  document.getElementById('convert').click();
+  assert.equal(document.getElementById('output').value, '');
+  assert.equal(document.getElementById('output').hidden, true);
+  assert.equal(document.getElementById('result-actions').hidden, true);
+});
+
 test('empty input is refused without touching the result card', () => {
   const realm = boot();
   const { document } = realm;

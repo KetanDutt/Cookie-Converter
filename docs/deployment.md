@@ -4,7 +4,7 @@ The app is 100% static — no build step, no dependencies, no server logic, no
 environment variables. Whatever a file host can serve, it can host.
 
 ```
-index.html   404.html   sw.js   site.webmanifest   _headers
+.nojekyll    index.html   404.html   sw.js   site.webmanifest   _headers
 assets/{converter.js, app.js, style.css, favicon.svg, icon-maskable.svg}
 docs/…
 ```
@@ -22,8 +22,15 @@ Nothing needs to be compiled or copied: the repository *is* the site.
 
 `404.html` is picked up automatically. Everything works under a sub-path
 because all URLs in the project are relative. (If you prefer Actions-based
-deploys, `.github/workflows/ci.yml` already validates the exact file set the
-host needs.)
+deploys, `.github/workflows/ci.yml` already validates the exact file set the host
+needs.)
+
+The repository ships a `.nojekyll` file, so GitHub Pages serves the tree
+**verbatim**: no Jekyll build, nothing silently dropped (Jekyll ignores
+`_`-prefixed files such as `_headers`), and the `docs/*.md` links the UI uses
+keep resolving — they open as readable plain text rather than rendered HTML.
+If you want rendered documentation instead, delete `.nojekyll` and link to
+`docs/<name>.html`; both choices work, they just differ in fidelity.
 
 ## Netlify
 

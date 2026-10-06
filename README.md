@@ -101,6 +101,7 @@ Cookie files are bearer credentials — treat them like passwords and read
 ## Project structure
 
 ```
+.nojekyll             Serve the tree verbatim on GitHub Pages (no Jekyll build)
 index.html            App shell, strict CSP, semantic markup
 404.html              Static-host fallback page in the same material language
 sw.js                 Network-first service worker (offline support)

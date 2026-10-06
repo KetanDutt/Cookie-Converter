@@ -433,7 +433,11 @@
     else if (els.tableNote) els.tableNote.hidden = true;
 
     if (els.outputTools) els.outputTools.hidden = !result.ok;
-    if (els.output) els.output.hidden = !result.ok;
+    if (els.output) {
+      els.output.hidden = !result.ok;
+      // Never leave a previous payload sitting in a hidden field.
+      if (!result.ok) els.output.value = '';
+    }
     if (els.resultActions) els.resultActions.hidden = !result.ok;
     if (els.privacyNote) els.privacyNote.hidden = !result.ok;
     if (result.ok) renderOutput();
