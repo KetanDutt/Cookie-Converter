@@ -34,10 +34,10 @@ matches the OS — no flash of the wrong theme) and once for `[data-theme="light
 | Edges | `--hairline`, `--hairline-strong`, `--edge`, `--edge-soft` | 1 px translucent borders + the inner top highlight |
 | Wells | `--well`, `--well-border` | inset reading surfaces (payload, cURL snippet, table head) |
 | Fallback | `--solid`, `--solid-deep` | opaque fills when `backdrop-filter` is missing or transparency is reduced |
-| Geometry | `--radius-xs/sm/md/lg/xl/2xl/pill` | 8 → 34 px, plus pills |
-| Spacing | `--sp-1 … --sp-10` | 4 → 88 px, a 4 px rhythm |
+| Geometry | `--radius-tip 2`, `--radius-2xs 6`, `--radius-xs 8` … `--radius-2xl 34`, `--radius-pill` | every `border-radius` in the app is one of these or a circle |
+| Spacing | `--sp-hair 2`, `--sp-tight 6`, `--sp-snug 10`, `--sp-1 … --sp-10` | 4 px rhythm with 2 px half-steps for dense chrome |
 | Type | `--font-sans`, `--font-mono`, `--fs-display/title/head/body/small/micro`, `--lh-*`, `--tr-*` | system fonts only — no web-font requests, ever |
-| Depth | `--e-0/1/2/3`, `--e-inset` | soft ambient shadows; `--e-inset` is the top light line |
+| Depth | `--e-0/1/2/3`, `--e-inset`, `--e-sunken`, `--e-track`, `--e-knob`, `--e-press`, `--e-halo`, `--e-glow`, `--e-glow-lg`, `--e-primary` | ambient shadows, inset highlights, recessed wells, the pressed state, the accent glow and the primary-button recipe |
 | Blur | `--blur-sm/md/lg`, `--saturate` | 12 / 22 / 34 px, saturated backdrop |
 | Motion | `--t-instant 120`, `--t-quick 180`, `--t-standard 260`, `--t-slow 340`, `--t-sheet 460` | micro, quick, standard, large, sheet |
 | Loops | `--t-drift-a/b`, `--t-spin`, `--t-sweep`, `--t-pulse` | the only looping motion in the app |
@@ -53,7 +53,12 @@ values. `npm run check` enforces the parts that used to rely on discipline:
   reduced-motion block excepted);
 * 44 text/background pairs must clear WCAG AA — body ink on each surface step,
   body ink on each tinted fill, status ink on its own tint, white on accent, and
-  `--muted` must stay visibly apart from `--faint` so the hierarchy survives.
+  `--muted` must stay visibly apart from `--faint` so the hierarchy survives;
+* every `border-radius` and every `box-shadow` must compose tokens, and every
+  spacing declaration must sit on the 2 px/4 px rhythm;
+* `[hidden] { display: none !important }` must exist — an author `display`
+  declaration outranks the user agent's rule, and without the guard the regions
+  the app hides would be painted anyway.
 
 ## 2 · Materials
 
