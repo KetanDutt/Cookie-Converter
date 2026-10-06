@@ -26,7 +26,7 @@
  *   • Errors are specific, actionable and machine-readable (`err.code`).
  *
  * @module CookieConverter
- * @version 2.2.0
+ * @version 2.3.0
  */
 (function (root, factory) {
   'use strict';
@@ -44,7 +44,7 @@
    * ======================================================================== */
 
   /** Engine version — kept in sync with package.json (enforced by `npm run check`). */
-  const VERSION = '2.2.0';
+  const VERSION = '2.3.0';
 
   /**
    * Cookies required by gemini-web2api, in the exact order they are emitted.

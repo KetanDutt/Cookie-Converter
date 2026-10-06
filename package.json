@@ -1,6 +1,6 @@
 {
   "name": "cookie-converter",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "type": "commonjs",
   "description": "Static, client-side converter for Netscape/JSON/header/cURL cookie exports used by gemini-web2api.",

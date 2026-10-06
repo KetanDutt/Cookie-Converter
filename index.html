@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Gemini Cookie Converter — cookie export → gemini-web2api JSON</title>
   <meta name="description" content="Convert Netscape cookie exports, extension JSON, Set-Cookie headers, raw Cookie headers or a Copy-as-cURL command into the JSON payload used by gemini-web2api. 100% client-side — your cookies never leave the browser.">
   <meta name="color-scheme" content="dark light">
-  <meta name="theme-color" content="#0a0d13" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#eef1f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0a0c11" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)">
   <meta name="referrer" content="no-referrer">
   <meta name="author" content="Cookie Converter contributors">
   <meta name="robots" content="index, follow">
@@ -28,221 +28,600 @@
 <body>
   <a class="skip-link" href="#input">Skip to the converter</a>
 
-  <!-- Layer 0 · ambient background the glass materials interact with -->
+  <!-- ── Icon sprite (single stroke family, 24px grid, 1.6 stroke) ───── -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-cookie" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.2 12.6a8.2 8.2 0 1 1-8.8-8.1 3 3 0 0 0 3.6 3.6 3 3 0 0 0 3.6 3.6c.5.1 1 .3 1.6.9Z"/>
+      <circle cx="9.4" cy="10.2" r="1.15" fill="currentColor" stroke="none"/>
+      <circle cx="14.1" cy="15.3" r="1.05" fill="currentColor" stroke="none"/>
+      <circle cx="9.8" cy="15.8" r="0.85" fill="currentColor" stroke="none"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="10.5" width="14" height="9.5" rx="3"/>
+      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>
+    </symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M18.6 5.4l-1.4 1.4M6.8 17.2l-1.4 1.4"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 14.4A8.2 8.2 0 0 1 9.6 4a8.2 8.2 0 1 0 10.4 10.4Z"/>
+    </symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8h10M18 8h2M4 16h4M12 16h8"/>
+      <circle cx="16" cy="8" r="2"/>
+      <circle cx="10" cy="16" r="2"/>
+    </symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="11" height="11" rx="3"/>
+      <path d="M15 6.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v6.5A2.5 2.5 0 0 0 6 15h.5"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3.5v10M8.2 9.8l3.8 3.8 3.8-3.8M4.5 16.5V18A2.5 2.5 0 0 0 7 20.5h10a2.5 2.5 0 0 0 2.5-2.5v-1.5"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12.8l4.2 4.2L19 7.2"/>
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 4.2 21 19.5H3Z"/>
+      <path d="M12 9.6v4.2"/>
+      <circle cx="12" cy="16.7" r="0.9" fill="currentColor" stroke="none"/>
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.5"/>
+      <path d="M12 11v5.2"/>
+      <circle cx="12" cy="8.1" r="0.95" fill="currentColor" stroke="none"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6.6 6.6l10.8 10.8M17.4 6.6 6.6 17.4"/>
+    </symbol>
+    <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 19.5v-14M6.2 11.3 12 5.5l5.8 5.8"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="6.2"/>
+      <path d="M15.6 15.6 20 20"/>
+    </symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3.5c.7 3.4 2.1 4.8 5.5 5.5-3.4.7-4.8 2.1-5.5 5.5-.7-3.4-2.1-4.8-5.5-5.5 3.4-.7 4.8-2.1 5.5-5.5Z"/>
+      <path d="M17.5 15.5c.3 1.6 1 2.3 2.6 2.6-1.6.3-2.3 1-2.6 2.6-.3-1.6-1-2.3-2.6-2.6 1.6-.3 2.3-1 2.6-2.6Z"/>
+    </symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4.5" width="18" height="15" rx="3"/>
+      <path d="M7 10.2l2.4 2.2L7 14.6M12.4 15h4.2"/>
+    </symbol>
+    <symbol id="i-puzzle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.5 4.2a1.8 1.8 0 0 1 3.4 0 1.7 1.7 0 0 1-.4 1.6h3.3a1 1 0 0 1 1 1v3.2a1.7 1.7 0 0 0-1.6-.3 1.8 1.8 0 0 0 0 3.4 1.7 1.7 0 0 0 1.6-.3v3.4a1 1 0 0 1-1 1H6.6a1 1 0 0 1-1-1v-3.4a1.7 1.7 0 0 1 1.6.3 1.8 1.8 0 0 0 0-3.4 1.7 1.7 0 0 1-1.6.3V6.8a1 1 0 0 1 1-1h3.3a1.7 1.7 0 0 1-.4-1.6Z"/>
+    </symbol>
+    <symbol id="i-braces" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.4 4.5C7.6 4.5 7 5.4 7 7v2.2c0 1.6-.9 2.5-2.4 2.8 1.5.3 2.4 1.2 2.4 2.8V17c0 1.6.6 2.5 2.4 2.5"/>
+      <path d="M14.6 4.5c1.8 0 2.4.9 2.4 2.5v2.2c0 1.6.9 2.5 2.4 2.8-1.5.3-2.4 1.2-2.4 2.8V17c0 1.6-.6 2.5-2.4 2.5"/>
+    </symbol>
+    <symbol id="i-window" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4.5" width="18" height="15" rx="3"/>
+      <path d="M3 9.2h18"/>
+      <circle cx="6.4" cy="6.9" r="0.75" fill="currentColor" stroke="none"/>
+      <circle cx="8.9" cy="6.9" r="0.75" fill="currentColor" stroke="none"/>
+    </symbol>
+    <symbol id="i-reply" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.5 6.5 4 12l5.5 5.5"/>
+      <path d="M4.6 12h8.2a6.2 6.2 0 0 1 6.2 6.2v.3"/>
+    </symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13.5 3.5H7A2.5 2.5 0 0 0 4.5 6v12A2.5 2.5 0 0 0 7 20.5h10a2.5 2.5 0 0 0 2.5-2.5V9.5Z"/>
+      <path d="M13.5 3.5v4a2 2 0 0 0 2 2h4"/>
+      <path d="M8.5 13.5h7M8.5 16.5h4.5"/>
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19.5 12a7.5 7.5 0 1 1-2.6-5.7"/>
+      <path d="M19.7 4.5v4.2h-4.2"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3.4l7 2.6v5.4c0 4.2-2.9 7.5-7 9.2-4.1-1.7-7-5-7-9.2V6Z"/>
+      <path d="M9.2 12.1l2 2 3.6-4"/>
+    </symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.8 12S6 6.5 12 6.5 21.2 12 21.2 12 18 17.5 12 17.5 2.8 12 2.8 12Z"/>
+      <circle cx="12" cy="12" r="2.6"/>
+    </symbol>
+  </svg>
+
+  <!-- ── Layer 0 · ambient background the glass interacts with ───────── -->
   <div class="bg" aria-hidden="true">
-    <div class="bg-orb bg-orb-a"></div>
-    <div class="bg-orb bg-orb-b"></div>
-    <div class="bg-grain"></div>
+    <span class="bg-field bg-field-a"></span>
+    <span class="bg-field bg-field-b"></span>
+    <span class="bg-field bg-field-c"></span>
+    <span class="bg-lamp"></span>
+    <span class="bg-grain"></span>
   </div>
 
-  <!-- Layer 3 · floating glass top bar -->
-  <header class="topbar glass" id="topbar">
-    <div class="brand">
-      <span class="brand-mark"><img src="assets/favicon.svg" alt="" width="22" height="22"></span>
-      <span class="brand-name">Cookie&nbsp;Converter</span>
-    </div>
-    <div class="topbar-actions">
-      <span class="chip" title="All processing happens in your browser. No network requests are made.">
-        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M8 1a3 3 0 0 0-3 3v2H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1V4a3 3 0 0 0-3-3Zm-1.5 5V4a1.5 1.5 0 1 1 3 0v2h-3Z"/></svg>
-        <span class="chip-label">On-device only</span>
-      </span>
-      <button id="theme-toggle" class="icon-btn glass" type="button" aria-label="Switch color theme" title="Switch theme">
-        <svg class="icon-sun" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-11a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 0Zm0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13ZM2.34 2.34a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 1 1-1.06 1.06L2.34 3.4a.75.75 0 0 1 0-1.06Zm9.2 9.2a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 1 1-1.06 1.06l-1.06-1.06a.75.75 0 0 1 0-1.06ZM0 8a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 8Zm13 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 13 8ZM2.34 13.66a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06L3.4 13.66a.75.75 0 0 1-1.06 0Zm9.2-9.2a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06a.75.75 0 0 1-1.06 0Z"/></svg>
-        <svg class="icon-moon" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M14.4 9.6A6.5 6.5 0 0 1 6.4 1.6 6.5 6.5 0 1 0 14.4 9.6Z"/></svg>
-      </button>
+  <!-- ── Progressive blur so content dissolves under the floating header ── -->
+  <div class="header-veil" id="header-veil" aria-hidden="true">
+    <span class="veil veil-1"></span>
+    <span class="veil veil-2"></span>
+    <span class="veil veil-3"></span>
+  </div>
+
+  <!-- ── Layer 3 · floating navigation ───────────────────────────────── -->
+  <header class="topbar glass-lg" id="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#converter">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Cookie <span class="brand-thin">Converter</span></span>
+      </a>
+
+      <nav class="nav" aria-label="Page sections">
+        <span class="nav-indicator" aria-hidden="true"></span>
+        <button class="nav-item is-active" type="button" id="nav-converter"
+                data-nav="converter" aria-current="true">Converter</button>
+        <button class="nav-item" type="button" id="nav-guide" data-nav="guide">Guide</button>
+      </nav>
+
+      <div class="topbar-actions">
+        <span class="chip" title="Everything runs in this tab. No network requests are made.">
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-lock"/></svg>
+          <span class="chip-label">On-device</span>
+        </span>
+        <button class="icon-btn" type="button" id="options-toggle"
+                aria-label="Conversion options" aria-haspopup="dialog" aria-expanded="false"
+                aria-controls="options-panel" data-tip="Options">
+          <svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>
+          <span class="dot-indicator" id="options-dot" aria-hidden="true"></span>
+        </button>
+        <button class="icon-btn" type="button" id="theme-toggle"
+                aria-label="Switch color theme" aria-haspopup="false" data-tip="Theme">
+          <span class="icon-swap" aria-hidden="true">
+            <svg class="icon icon-sun"><use href="#i-sun"/></svg>
+            <svg class="icon icon-moon"><use href="#i-moon"/></svg>
+          </span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main>
-    <!-- ── input ─────────────────────────────────────────────────────── -->
-    <section class="card glass reveal" aria-labelledby="input-heading">
-      <div class="hero">
-        <p class="eyebrow">For gemini-web2api</p>
-        <h1 id="input-heading">Convert your cookies.<br>Nothing leaves this page.</h1>
+  <!-- ── Layer 4 · options popover (sheet on small screens) ──────────── -->
+  <div class="popover glass-lg" id="options-panel" role="dialog" aria-modal="false"
+       aria-label="Conversion options" hidden>
+    <div class="popover-arrow" aria-hidden="true"></div>
+    <div class="popover-head">
+      <div>
+        <h2 class="popover-title">Conversion options</h2>
+        <p class="popover-sub muted small">Applied to the next conversion.</p>
+      </div>
+      <button class="icon-btn icon-btn-sm" type="button" id="options-close"
+              aria-label="Close options" data-tip="Close">
+        <svg class="icon icon-14" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <div class="popover-body">
+      <label class="switch-row">
+        <span class="switch-copy">
+          <span class="switch-title">Include extra Google cookies</span>
+          <span class="switch-hint muted small">Appends <code>__Secure-1PSIDTS</code>, <code>SIDCC</code> and friends when the export has them.</span>
+        </span>
+        <input type="checkbox" id="opt-extra">
+        <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
+      </label>
+
+      <label class="switch-row">
+        <span class="switch-copy">
+          <span class="switch-title">Allow expired cookies</span>
+          <span class="switch-hint muted small">Only when the values are fresh but the system clock is not.</span>
+        </span>
+        <input type="checkbox" id="opt-expired">
+        <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
+      </label>
+
+      <div class="popover-foot">
+        <button class="btn btn-ghost btn-sm" type="button" id="options-reset">
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-refresh"/></svg>
+          Reset options
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="workspace" id="converter">
+    <!-- ── Layer 2 · input card ─────────────────────────────────────── -->
+    <section class="card glass-md input-card reveal" aria-labelledby="input-heading">
+      <div class="card-head">
+        <p class="eyebrow"><svg class="icon icon-14" aria-hidden="true"><use href="#i-sparkle"/></svg> For gemini-web2api</p>
+        <h1 id="input-heading">Convert your cookies.<br><span class="text-dim">Nothing leaves this page.</span></h1>
         <p class="lede">
-          Turn a Netscape export, an extension JSON array, a raw <code>Cookie</code> header,
-          <code>Set-Cookie</code> lines or a <em>Copy&nbsp;as&nbsp;cURL</em> command into the JSON payload
-          documented by
+          Netscape files, extension JSON, raw <code>Cookie</code> headers,
+          <code>Set-Cookie</code> lines or a <em>Copy&nbsp;as&nbsp;cURL</em> command —
+          parsed into the payload
           <a href="https://github.com/Sophomoresty/gemini-web2api" rel="noopener noreferrer">gemini-web2api</a>
-          — parsed entirely in your browser.
+          expects.
         </p>
       </div>
 
       <div class="dropzone" id="dropzone" role="button" tabindex="0"
            aria-label="Choose a cookie file or drop one here" aria-describedby="dropzone-hint">
         <span class="dropzone-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 3a1 1 0 0 1 .97.76l.5 2.1a1 1 0 0 0 .72.73l2.1.5a1 1 0 0 1 0 1.94l-2.1.5a1 1 0 0 0-.73.72l-.5 2.1a1 1 0 0 1-1.93 0l-.5-2.1a1 1 0 0 0-.73-.73l-2.1-.5a1 1 0 0 1 0-1.93l2.1-.5a1 1 0 0 0 .73-.73l.5-2.1A1 1 0 0 1 12 3Zm-6.5 9a.75.75 0 0 1 .73.57l.27 1.1 1.1.27a.75.75 0 0 1 0 1.45l-1.1.27-.27 1.1a.75.75 0 0 1-1.45 0l-.27-1.1-1.1-.27a.75.75 0 0 1 0-1.45l1.1-.27.27-1.1A.75.75 0 0 1 5.5 12Zm12 2a.75.75 0 0 1 .73.57l.27 1.1 1.1.27a.75.75 0 0 1 0 1.45l-1.1.27-.27 1.1a.75.75 0 0 1-1.45 0l-.27-1.1-1.1-.27a.75.75 0 0 1 0-1.45l1.1-.27.27-1.1a.75.75 0 0 1 .72-.57Z"/></svg>
+          <svg class="icon icon-20"><use href="#i-file"/></svg>
         </span>
         <span class="dropzone-text">
-          <strong>Drop your cookie file here</strong>
-          <span id="dropzone-hint" class="muted small">or click to browse — .txt · .cookies · .json</span>
+          <strong>Drop your cookie file</strong>
+          <span id="dropzone-hint" class="muted small">or click to browse · .txt · .cookies · .json</span>
         </span>
-        <span class="dropzone-spinner" aria-hidden="true"></span>
+        <span class="dropzone-progress" aria-hidden="true"><span class="dropzone-bar"></span></span>
         <input id="file" type="file" accept=".txt,.cookies,.json,.text,text/plain,application/json" hidden>
       </div>
 
-      <label for="input">Or paste the export</label>
-      <textarea id="input" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off"
-        aria-describedby="input-meta"
-        placeholder="# Netscape HTTP Cookie File&#10;.gemini.google.com&#9;TRUE&#9;/&#9;TRUE&#9;1893456000&#9;SID&#9;…&#10;&#10;Also accepted: extension JSON [{&quot;name&quot;:&quot;SID&quot;,…}] · raw header SID=…; HSID=… · Copy as cURL"></textarea>
-
-      <p class="input-meta" id="input-meta">
-        <span class="detect" id="detect-badge" data-format="empty">Waiting for input</span>
-        <span class="muted small" id="char-count">0 B</span>
-      </p>
-
-      <details class="disclosure">
-        <summary>Where do I get these cookies?</summary>
-        <ol class="steps">
-          <li>Sign in to <a href="https://gemini.google.com" rel="noopener noreferrer">gemini.google.com</a> in your browser.</li>
-          <li>Export them any of these ways: an exporter extension (Netscape <code>.txt</code> or JSON), or DevTools → Network → right-click a request → <em>Copy&nbsp;as&nbsp;cURL</em>.</li>
-          <li>Drop the file here or paste it above, then press <strong>Convert</strong> (<kbd>Ctrl</kbd>+<kbd>↵</kbd>).</li>
-        </ol>
-        <p class="muted small">
-          Full walkthroughs:
-          <a href="docs/exporting-cookies.md">exporting cookies</a> ·
-          <a href="docs/formats.md">supported formats</a> ·
-          <a href="docs/troubleshooting.md">troubleshooting</a>
+      <div class="field">
+        <div class="field-head">
+          <label for="input">Or paste the export</label>
+          <span class="detect" id="detect-badge" data-format="empty">Waiting for input</span>
+        </div>
+        <textarea id="input" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off"
+          aria-describedby="char-count"
+          placeholder="# Netscape HTTP Cookie File&#10;.gemini.google.com&#9;TRUE&#9;/&#9;TRUE&#9;1893456000&#9;SID&#9;…&#10;&#10;Also accepted: extension JSON [{&quot;name&quot;:&quot;SID&quot;,…}] · raw header SID=…; HSID=… · Copy as cURL"></textarea>
+        <p class="field-foot">
+          <span class="muted small">Auto-detected as you type</span>
+          <span class="muted small" id="char-count">0 B</span>
         </p>
-      </details>
+      </div>
 
       <div class="actions">
-        <button class="btn btn-primary" id="convert" type="button">
+        <button class="btn btn-primary" type="button" id="convert">
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-sparkle"/></svg>
           <span>Convert</span>
           <span class="kbd-hint" aria-hidden="true"><kbd>Ctrl</kbd><kbd>↵</kbd></span>
         </button>
-        <button class="btn btn-ghost" id="sample" type="button">Load sample</button>
-        <button class="btn btn-ghost" id="clear" type="button">Clear</button>
+        <button class="btn btn-glass" type="button" id="sample">Load sample</button>
+        <button class="btn btn-ghost" type="button" id="clear">Clear</button>
       </div>
-
-      <details class="disclosure advanced">
-        <summary>Advanced options</summary>
-        <label class="switch">
-          <input type="checkbox" id="opt-extra">
-          <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
-          <span class="switch-label">
-            Include extra Google cookies when present
-            <span class="muted small">(<code>__Secure-1PSIDTS</code>, <code>SIDCC</code>, …)</span>
-          </span>
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="opt-expired">
-          <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
-          <span class="switch-label">
-            Allow expired cookies
-            <span class="muted small">(only if your system clock is wrong)</span>
-          </span>
-        </label>
-      </details>
 
       <div id="status" class="banner" role="status" aria-live="polite" hidden></div>
     </section>
 
-    <!-- ── result ────────────────────────────────────────────────────── -->
-    <section class="card glass" id="result" aria-labelledby="result-heading" hidden>
-      <div class="result-head">
-        <h2 id="result-heading">Result</h2>
-        <p id="stats" class="muted small"></p>
-      </div>
-
-      <div class="checklist-wrap" id="checklist-wrap" hidden>
-        <h3 class="small-heading">Required cookies</h3>
-        <ul class="checklist" id="checklist"></ul>
-      </div>
-
-      <div class="table-tools" id="table-tools" hidden>
-        <h3 class="small-heading">Cookies found</h3>
-        <div class="table-controls">
-          <input type="search" id="filter" class="filter-input" placeholder="Filter name or domain…"
-                 aria-label="Filter cookies by name or domain" autocomplete="off">
-          <label class="switch compact">
-            <input type="checkbox" id="only-required">
-            <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
-            <span class="switch-label">Required only</span>
-          </label>
-          <label class="switch compact">
-            <input type="checkbox" id="reveal">
-            <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
-            <span class="switch-label">Show values</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="table-wrap glass-soft" id="table-wrap" hidden>
-        <table id="cookie-table">
-          <caption class="sr-only">Cookies parsed from your input, with domain, expiry and flags</caption>
-          <thead>
-            <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Domain</th>
-              <th scope="col">Expires</th>
-              <th scope="col">Flags</th>
-              <th scope="col">Value</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <p class="table-note muted small" id="table-note" hidden></p>
-
-      <ul class="notes" id="notes" hidden></ul>
-
-      <details class="disclosure report" id="report" hidden>
-        <summary>Skipped lines (<span id="report-count">0</span>)</summary>
-        <ul class="report-list" id="report-list"></ul>
-        <p class="muted small">
-          These lines were not recognised as cookies and were ignored. Most exporters add
-          comments or blank lines, which are skipped silently.
+    <!-- ── Layer 1/2 · result column ────────────────────────────────── -->
+    <div class="result-column">
+      <div class="empty-state glass-sm reveal" id="empty-state">
+        <span class="empty-art" aria-hidden="true">
+          <svg viewBox="0 0 120 88" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="14" y="20" width="76" height="52" rx="12" opacity="0.30"/>
+            <rect x="26" y="12" width="76" height="52" rx="12" opacity="0.55"/>
+            <circle cx="64" cy="38" r="17" fill="none"/>
+            <circle cx="58" cy="34" r="2" fill="currentColor" stroke="none"/>
+            <circle cx="69" cy="38" r="1.8" fill="currentColor" stroke="none"/>
+            <circle cx="62" cy="44" r="1.5" fill="currentColor" stroke="none"/>
+            <path d="M96 12c.6 2.9 1.8 4.1 4.7 4.7-2.9.6-4.1 1.8-4.7 4.7-.6-2.9-1.8-4.1-4.7-4.7 2.9-.6 4.1-1.8 4.7-4.7Z" opacity="0.8"/>
+          </svg>
+        </span>
+        <h2 class="empty-title">Ready when you are</h2>
+        <p class="empty-text">
+          Paste an export, drop a file, or try a sample. The parsed cookies, their
+          expiry and the finished payload appear here — and stay in this tab.
         </p>
-      </details>
-
-      <div class="output-tools" id="output-tools" hidden>
-        <h3 class="small-heading">Generated payload</h3>
-        <div class="segmented" role="group" aria-label="Output format" data-value="pretty">
-          <span class="seg-thumb" aria-hidden="true"></span>
-          <button type="button" id="fmt-pretty" class="active" aria-pressed="true">Pretty</button>
-          <button type="button" id="fmt-min" aria-pressed="false">Minified</button>
+        <div class="empty-actions">
+          <button class="btn btn-primary" type="button" id="empty-guide">
+            <svg class="icon icon-14" aria-hidden="true"><use href="#i-terminal"/></svg>
+            Show me how
+          </button>
+          <button class="btn btn-ghost" type="button" id="empty-sample">Try a sample</button>
         </div>
       </div>
-      <textarea id="output" readonly spellcheck="false" aria-label="Generated JSON output" hidden></textarea>
 
-      <div class="actions" id="result-actions" hidden>
-        <button class="btn btn-primary" id="copy" type="button">Copy JSON</button>
-        <button class="btn btn-glass" id="download-json" type="button">Download cookie.json</button>
-        <button class="btn btn-ghost" id="download-txt" type="button">Download cookie.txt</button>
+      <div class="skeleton glass-sm" id="result-skeleton" hidden aria-hidden="true">
+        <span class="skel-line skel-w40"></span>
+        <span class="skel-grid">
+          <span class="skel-cell"></span><span class="skel-cell"></span><span class="skel-cell"></span>
+          <span class="skel-cell"></span><span class="skel-cell"></span><span class="skel-cell"></span>
+        </span>
+        <span class="skel-line skel-w70"></span>
+        <span class="skel-line skel-w55"></span>
       </div>
-      <p class="muted small privacy-note" id="privacy-note" hidden>
-        <strong>Keep it private.</strong> <code>cookie.json</code> grants access to your Google account —
-        delete it from your Downloads folder and from any chat or ticket you pasted it into once it is in place.
-      </p>
-    </section>
+
+      <section class="card glass-md" id="result" aria-labelledby="result-heading" hidden>
+        <div class="result-head">
+          <div>
+            <h2 id="result-heading">Result</h2>
+            <p id="stats" class="muted small"></p>
+          </div>
+        </div>
+
+        <div class="checklist-wrap" id="checklist-wrap" hidden>
+          <div class="section-head">
+            <h3 class="section-title">Required cookies</h3>
+            <div class="coverage" id="coverage" data-progress="0">
+              <span class="coverage-track" aria-hidden="true"><span class="coverage-fill" id="coverage-fill"></span></span>
+              <span class="coverage-label muted small"><span id="coverage-count">0</span>/6 found</span>
+            </div>
+          </div>
+          <ul class="checklist" id="checklist"></ul>
+        </div>
+
+        <div class="section-head" id="table-tools" hidden>
+          <h3 class="section-title">Cookies found</h3>
+          <div class="table-controls">
+            <span class="search-field">
+              <svg class="icon icon-14" aria-hidden="true"><use href="#i-search"/></svg>
+              <input type="search" id="filter" placeholder="Filter name or domain"
+                     aria-label="Filter cookies by name or domain" autocomplete="off">
+            </span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="only-required">
+              <span class="pill-toggle-face">Required only</span>
+            </label>
+            <label class="pill-toggle">
+              <input type="checkbox" id="reveal">
+              <span class="pill-toggle-face"><svg class="icon icon-14" aria-hidden="true"><use href="#i-eye"/></svg> Show values</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="table-wrap glass-sm" id="table-wrap" hidden>
+          <table id="cookie-table">
+            <caption class="sr-only">Cookies parsed from your input, with domain, expiry and flags</caption>
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Domain</th>
+                <th scope="col">Expires</th>
+                <th scope="col">Flags</th>
+                <th scope="col">Value</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="table-note muted small" id="table-note" hidden></p>
+
+        <ul class="notes" id="notes" hidden></ul>
+
+        <details class="disclosure" id="report" hidden>
+          <summary>
+            <span class="disclosure-label">Skipped lines (<span id="report-count">0</span>)</span>
+          </summary>
+          <ul class="report-list" id="report-list"></ul>
+          <p class="muted small">
+            These lines were not recognised as cookies and were ignored. Comments and blank
+            lines are skipped silently and counted separately.
+          </p>
+        </details>
+
+        <div class="section-head" id="output-tools" hidden>
+          <h3 class="section-title">Generated payload</h3>
+          <div class="segmented" role="group" aria-label="Output format" data-value="pretty">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <button type="button" id="fmt-pretty" class="active" aria-pressed="true">Pretty</button>
+            <button type="button" id="fmt-min" aria-pressed="false">Minified</button>
+          </div>
+        </div>
+        <textarea id="output" readonly spellcheck="false" aria-label="Generated JSON output" hidden></textarea>
+
+        <div class="actions" id="result-actions" hidden>
+          <button class="btn btn-primary" type="button" id="copy">
+            <svg class="icon icon-14" aria-hidden="true"><use href="#i-copy"/></svg>
+            Copy JSON
+          </button>
+          <button class="btn btn-glass" type="button" id="download-json">
+            <svg class="icon icon-14" aria-hidden="true"><use href="#i-download"/></svg>
+            cookie.json
+          </button>
+          <button class="btn btn-ghost" type="button" id="download-txt">
+            <svg class="icon icon-14" aria-hidden="true"><use href="#i-download"/></svg>
+            cookie.txt
+          </button>
+        </div>
+        <p class="muted small privacy-note" id="privacy-note" hidden>
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-shield"/></svg>
+          <span><strong>Keep it private.</strong> This payload grants access to your Google
+          account — delete it from Downloads and from anywhere you pasted it once it is in place.</span>
+        </p>
+      </section>
+    </div>
   </main>
 
-  <footer class="muted small">
+  <!-- ── Guide ────────────────────────────────────────────────────────── -->
+  <section class="guide" id="guide" aria-labelledby="guide-heading">
+    <div class="section-head section-head-lg reveal">
+      <h2 id="guide-heading">Three steps, no uploads</h2>
+      <p class="muted">Everything below happens in this tab — the guide is the only thing you need to read.</p>
+    </div>
+
+    <ol class="steps-grid">
+      <li class="step-card glass-sm reveal">
+        <span class="step-index">1</span>
+        <h3 class="step-title">Export your cookies</h3>
+        <p class="muted small">Copy a request as cURL, or use an exporter extension. Signed in at
+          <code>gemini.google.com</code> is the important part.</p>
+      </li>
+      <li class="step-card glass-sm reveal">
+        <span class="step-index">2</span>
+        <h3 class="step-title">Drop it in</h3>
+        <p class="muted small">Paste the text or drop the file above. The format is detected as you type.</p>
+      </li>
+      <li class="step-card glass-sm reveal">
+        <span class="step-index">3</span>
+        <h3 class="step-title">Use the payload</h3>
+        <p class="muted small">Copy <code>cookie.json</code> — or <code>cookie.txt</code> for
+          <code>--cookie-file</code> — and hand it to gemini-web2api.</p>
+      </li>
+    </ol>
+
+    <div class="section-head">
+      <h3 class="section-title">Try a format</h3>
+      <span class="muted small">Loads a safe sample into the converter</span>
+    </div>
+    <div class="chip-row">
+      <button class="chip-btn glass-sm" type="button" id="sample-netscape">
+        <svg class="icon icon-14" aria-hidden="true"><use href="#i-file"/></svg>
+        <span>Netscape jar</span>
+      </button>
+      <button class="chip-btn glass-sm" type="button" id="sample-json">
+        <svg class="icon icon-14" aria-hidden="true"><use href="#i-braces"/></svg>
+        <span>Extension JSON</span>
+      </button>
+      <button class="chip-btn glass-sm" type="button" id="sample-header">
+        <svg class="icon icon-14" aria-hidden="true"><use href="#i-window"/></svg>
+        <span>Cookie header</span>
+      </button>
+      <button class="chip-btn glass-sm" type="button" id="sample-setcookie">
+        <svg class="icon icon-14" aria-hidden="true"><use href="#i-reply"/></svg>
+        <span>Set-Cookie</span>
+      </button>
+      <button class="chip-btn glass-sm" type="button" id="sample-curl">
+        <svg class="icon icon-14" aria-hidden="true"><use href="#i-terminal"/></svg>
+        <span>Copy as cURL</span>
+      </button>
+    </div>
+
+    <div class="guide-foot">
+      <p class="privacy-strip glass-sm">
+        <svg class="icon icon-16" aria-hidden="true"><use href="#i-lock"/></svg>
+        <span><strong>On-device only.</strong> No network requests, no analytics, no storage of
+        cookie values. <a href="docs/security.md">Read the security notes</a>.</span>
+      </p>
+      <nav class="doc-links" aria-label="Documentation">
+        <a href="docs/README.md">Documentation</a>
+        <a href="docs/formats.md">Formats</a>
+        <a href="docs/exporting-cookies.md">Exporting</a>
+        <a href="docs/troubleshooting.md">Troubleshooting</a>
+        <a href="docs/faq.md">FAQ</a>
+      </nav>
+    </div>
+  </section>
+
+  <footer class="site-foot muted small">
     <p>
       <strong>Privacy</strong> — everything runs in your browser: no uploads, no analytics, no network calls.
-      Treat cookie files like passwords · <a href="docs/security.md">security guide</a>
+      Treat cookie files like passwords.
     </p>
     <p class="footer-links">
-      <a href="docs/README.md">Documentation</a>
-      <span class="dot" aria-hidden="true">·</span>
-      <a href="docs/formats.md">Formats</a>
-      <span class="dot" aria-hidden="true">·</span>
-      <a href="docs/troubleshooting.md">Troubleshooting</a>
+      <a href="LICENSE">All rights reserved</a>
       <span class="dot" aria-hidden="true">·</span>
       <a href="https://github.com/Sophomoresty/gemini-web2api" rel="noopener noreferrer">gemini-web2api</a>
       <span class="dot" aria-hidden="true">·</span>
-      <a href="LICENSE">All rights reserved</a>
-      <span class="dot" aria-hidden="true">·</span>
-      <span id="version">v2.2.0</span>
+      <span id="version">v2.3.0</span>
     </p>
     <p class="faint">
       Not affiliated with Google. Only convert cookies from accounts you own and are permitted to use.
     </p>
   </footer>
 
-  <!-- Layer 6 · floating glass toasts -->
+  <!-- ── Layer 3 · mobile bottom bar ──────────────────────────────────── -->
+  <div class="bottombar glass-lg" id="bottombar" role="toolbar" aria-label="Quick actions">
+    <button class="bar-btn bar-primary" type="button" id="bar-convert" disabled>
+      <svg class="icon icon-16" aria-hidden="true"><use href="#i-sparkle"/></svg>
+      <span>Convert</span>
+    </button>
+    <button class="bar-btn" type="button" id="bar-guide">
+      <svg class="icon icon-16" aria-hidden="true"><use href="#i-info"/></svg>
+      <span>Guide</span>
+    </button>
+    <button class="bar-btn" type="button" id="bar-options" aria-expanded="false" aria-controls="options-panel">
+      <svg class="icon icon-16" aria-hidden="true"><use href="#i-sliders"/></svg>
+      <span>Options</span>
+    </button>
+  </div>
+
+  <button class="to-top glass-md" type="button" id="to-top" aria-label="Back to top" hidden data-tip="Back to top">
+    <svg class="icon icon-16" aria-hidden="true"><use href="#i-up"/></svg>
+  </button>
+
+  <!-- ── Layer 6 · floating notifications ────────────────────────────── -->
   <div class="toast-stack" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- ── Layer 5 · guide dialog ──────────────────────────────────────── -->
+  <dialog class="sheet glass-lg" id="guide-dialog" aria-labelledby="guide-dialog-title">
+    <div class="sheet-head">
+      <div class="sheet-heading">
+        <span class="sheet-icon" aria-hidden="true"><svg class="icon icon-18"><use href="#i-cookie"/></svg></span>
+        <div>
+          <h2 id="guide-dialog-title">Getting your Gemini cookies</h2>
+          <p class="muted small">Five ways — pick whichever fits the tools you already have.</p>
+        </div>
+      </div>
+      <button class="icon-btn" type="button" id="guide-close" aria-label="Close guide" data-tip="Close">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </div>
+
+    <div class="tabs" id="guide-tabs" data-active="0">
+      <span class="tabs-indicator" aria-hidden="true"></span>
+      <div class="tablist" role="tablist" aria-label="Export methods">
+        <button class="tab" type="button" role="tab" id="tab-curl" aria-selected="true" aria-controls="panel-curl">
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-terminal"/></svg><span>cURL</span>
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-extension" aria-selected="false" aria-controls="panel-extension" tabindex="-1">
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-puzzle"/></svg><span>Extension</span>
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-json" aria-selected="false" aria-controls="panel-json" tabindex="-1">
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-braces"/></svg><span>JSON</span>
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-devtools" aria-selected="false" aria-controls="panel-devtools" tabindex="-1">
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-window"/></svg><span>DevTools</span>
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-response" aria-selected="false" aria-controls="panel-response" tabindex="-1">
+          <svg class="icon icon-14" aria-hidden="true"><use href="#i-reply"/></svg><span>Response</span>
+        </button>
+      </div>
+
+      <div class="tab-panels">
+        <div class="tab-panel" role="tabpanel" id="panel-curl" aria-labelledby="tab-curl" tabindex="0">
+          <p class="panel-lede">No extensions, nothing to install — the fastest route.</p>
+          <ol class="panel-steps">
+            <li>Stay signed in at <code>gemini.google.com</code>.</li>
+            <li>Open DevTools (<kbd>F12</kbd>) → <strong>Network</strong> and reload the page.</li>
+            <li>Right-click the first <code>gemini.google.com</code> request → <strong>Copy</strong> → <strong>Copy as cURL</strong>.</li>
+            <li>Paste the whole command into the converter above.</li>
+          </ol>
+          <pre class="snippet">curl 'https://gemini.google.com/app' \
+  -H 'cookie: SID=…; HSID=…; SAPISID=…'</pre>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="panel-extension" aria-labelledby="tab-extension" tabindex="0" hidden>
+          <p class="panel-lede">Best if you convert often.</p>
+          <ol class="panel-steps">
+            <li>Install <em>Get cookies.txt LOCALLY</em> (Chrome/Edge) or <em>cookies.txt</em> (Firefox).</li>
+            <li>Open <code>gemini.google.com</code> and stay on that tab.</li>
+            <li>Export cookies for the current site, then drop the <code>.txt</code> file above.</li>
+          </ol>
+          <p class="panel-note"><code>#HttpOnly_</code> lines are expected — they are cookies, not comments.</p>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="panel-json" aria-labelledby="tab-json" tabindex="0" hidden>
+          <p class="panel-lede">Cookie-Editor and friends produce this shape.</p>
+          <ol class="panel-steps">
+            <li>On <code>gemini.google.com</code>, open Cookie-Editor → <strong>Export</strong> → <strong>Export as JSON</strong>.</li>
+            <li>Paste the array above — or use DevTools → Application → Cookies → <em>Copy all as JSON</em>.</li>
+          </ol>
+          <pre class="snippet">[{ "domain": ".gemini.google.com", "name": "SID",
+   "value": "…", "expirationDate": 1893456000 }]</pre>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="panel-devtools" aria-labelledby="tab-devtools" tabindex="0" hidden>
+          <p class="panel-lede">For copying values by hand.</p>
+          <ol class="panel-steps">
+            <li>DevTools → <strong>Application</strong> → <strong>Cookies</strong> → <code>https://gemini.google.com</code>.</li>
+            <li>Copy the six values: <code>SID</code>, <code>HSID</code>, <code>SSID</code>, <code>APISID</code>, <code>SAPISID</code>, <code>__Secure-1PSID</code>.</li>
+            <li>Paste them as one line: <code>SID=…; HSID=…; SSID=…; APISID=…; SAPISID=…; __Secure-1PSID=…</code></li>
+          </ol>
+          <p class="panel-note">Values containing spaces mean a copy slipped — re-copy the cell.</p>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="panel-response" aria-labelledby="tab-response" tabindex="0" hidden>
+          <p class="panel-lede">Straight from response headers or a server log.</p>
+          <ol class="panel-steps">
+            <li>DevTools → <strong>Network</strong> → pick a request → <strong>Response Headers</strong>.</li>
+            <li>Copy every <code>Set-Cookie</code> line and paste them above.</li>
+          </ol>
+          <p class="panel-note">Attributes (<code>Domain</code>, <code>Path</code>, <code>Expires</code>, <code>SameSite</code>) are parsed, not mistaken for cookie names.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-foot">
+      <p class="muted small">
+        Delete the raw export and the generated payload once gemini-web2api has them.
+        Full walkthrough: <a href="docs/exporting-cookies.md">exporting cookies</a>.
+      </p>
+      <button class="btn btn-primary btn-sm" type="button" id="guide-done">Got it</button>
+    </div>
+  </dialog>
 
   <noscript>
     <div class="banner banner-err noscript-banner">
@@ -251,6 +630,7 @@
   </noscript>
 
   <script src="assets/converter.js"></script>
+  <script src="assets/ui.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>

@@ -37,12 +37,14 @@ test('app boots and exposes the engine version in the footer', () => {
   assert.equal(version.textContent, 'v' + realm.engine.VERSION);
 });
 
-test('the engine is discovered from index.html ids — no wiring gaps', () => {
+test('boots cleanly: engine + UI loaded, no error banner', () => {
   const realm = boot();
-  const status = realm.document.getElementById('status');
-  // The boot guard only writes to #status when the engine is missing.
-  assert.equal(status.hidden, false); // hidden=true only after a convert call
   assert.equal(realm.engine.REQUIRED.length, 6);
+  assert.equal(typeof realm.ui.toast.show, 'function');
+  const status = realm.document.getElementById('status');
+  // The boot guard only ever writes to #status when a module failed to load.
+  assert.equal(status.textContent, '');
+  assert.ok(!status.classList.contains('banner-err'));
 });
 
 /* ------------------------------------------------------------------ *
@@ -351,7 +353,7 @@ test('the pretty/minified toggle re-renders the payload', () => {
 
   document.getElementById('fmt-min').click();
   assert.ok(!output.value.includes('\n'));
-  assert.equal(document.getElementById('segmented-anchor').dataset.value, 'min');
+  assert.equal(document.querySelector('.segmented').dataset.value, 'min');
   assert.equal(document.getElementById('fmt-min').getAttribute('aria-pressed'), 'true');
 
   document.getElementById('fmt-pretty').click();
@@ -520,4 +522,290 @@ test('a missing engine produces a visible error instead of a blank page', () => 
   const status = doc.getElementById('status');
   assert.equal(status.hidden, false);
   assert.match(status.textContent, /conversion engine \(assets\/converter\.js\) failed to load/);
+});
+
+/* ------------------------------------------------------------------ *
+ * Redesign: navigation, popover, dialog, tabs, states
+ * ------------------------------------------------------------------ */
+
+test('navigation glides between sections and tracks scroll', () => {
+  const realm = boot();
+  const { document } = realm;
+  const nav = document.querySelector('.nav');
+
+  assert.equal(nav.dataset.active, '0');
+  assert.equal(document.getElementById('nav-converter').classList.contains('is-active'), true);
+  assert.equal(document.getElementById('nav-converter').getAttribute('aria-current'), 'true');
+
+  document.getElementById('nav-guide').click();
+  assert.equal(nav.dataset.active, '1');
+  assert.equal(document.getElementById('nav-guide').classList.contains('is-active'), true);
+  assert.equal(document.getElementById('nav-converter').hasAttribute('aria-current'), false);
+  assert.equal(document.getElementById('guide').scrolledIntoView, true);
+
+  document.getElementById('nav-converter').click();
+  assert.equal(nav.dataset.active, '0');
+});
+
+test('scroll state drives the header veil, top bar and back-to-top button', () => {
+  const realm = boot();
+  const { document } = realm;
+  const toTop = document.getElementById('to-top');
+
+  assert.equal(document.getElementById('header-veil').classList.contains('is-active'), false);
+  assert.equal(toTop.classList.contains('is-visible'), false);
+
+  realm.scrollTo(600);
+  assert.equal(document.getElementById('topbar').classList.contains('is-scrolled'), true);
+  assert.equal(document.getElementById('header-veil').classList.contains('is-active'), true);
+  assert.equal(toTop.classList.contains('is-visible'), true);
+  assert.equal(toTop.tabIndex, 0);
+
+  realm.scrollTo(0);
+  assert.equal(toTop.classList.contains('is-visible'), false);
+  assert.equal(toTop.tabIndex, -1);
+});
+
+test('options popover opens, traps nothing, closes on outside click and Escape', () => {
+  const realm = boot();
+  const { document, clock } = realm;
+  const trigger = document.getElementById('options-toggle');
+  const panel = document.getElementById('options-panel');
+
+  assert.equal(panel.hidden, true);
+  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+
+  trigger.click();
+  assert.equal(panel.hidden, false);
+  assert.equal(panel.classList.contains('is-open'), true);
+  assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+
+  // Escape closes
+  realm.fire('keydown', { key: 'Escape' });
+  clock.runAll();
+  assert.equal(panel.hidden, true);
+  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+
+  // Outside click closes
+  trigger.click();
+  assert.equal(panel.hidden, false);
+  document.body.dispatchEvent({ type: 'click', target: document.body });
+  clock.runAll();
+  assert.equal(panel.hidden, true);
+
+  // Clicks inside the panel must NOT close it
+  trigger.click();
+  panel.dispatchEvent({ type: 'click', target: panel });
+  assert.equal(panel.hidden, false);
+});
+
+test('the mobile bar options button drives the same popover', () => {
+  const realm = boot();
+  const { document } = realm;
+  const bar = document.getElementById('bar-options');
+  document.getElementById('bar-options').click();
+  assert.equal(document.getElementById('options-panel').hidden, false);
+  assert.equal(bar.getAttribute('aria-expanded'), 'true');
+  bar.click();
+  assert.equal(document.getElementById('options-panel').classList.contains('is-open'), false);
+});
+
+test('options: dot indicator, persistence and reset', () => {
+  const realm = boot();
+  const { document } = realm;
+  const dot = document.getElementById('options-dot');
+  assert.equal(dot.hidden, true);
+
+  const extra = document.getElementById('opt-extra');
+  extra.checked = true;
+  extra.dispatchEvent({ type: 'change', target: extra });
+  assert.equal(dot.hidden, false);
+  assert.equal(JSON.parse(realm.storage.get('gcc-prefs')).extra, true);
+
+  document.getElementById('options-reset').click();
+  assert.equal(dot.hidden, true);
+  assert.equal(document.getElementById('opt-extra').checked, false);
+  assert.equal(JSON.parse(realm.storage.get('gcc-prefs')).extra, false);
+});
+
+test('guide dialog opens from the nav, empty state and mobile bar', () => {
+  const realm = boot();
+  const { document, clock } = realm;
+  const dialog = document.getElementById('guide-dialog');
+  assert.equal(dialog.open, false);
+
+  document.getElementById('empty-guide').click();
+  assert.equal(dialog.open, true);
+  assert.ok(!dialog.classList.contains('is-closing'));
+
+  // closes with the animation, then really closes
+  document.getElementById('guide-close').click();
+  assert.equal(dialog.classList.contains('is-closing'), true);
+  clock.runAll();
+  assert.equal(dialog.open, false);
+
+  document.getElementById('nav-guide').click();
+  assert.equal(dialog.open, true);
+  document.getElementById('guide-done').click();
+  clock.runAll();
+  assert.equal(dialog.open, false);
+
+  document.getElementById('bar-guide').click();
+  assert.equal(dialog.open, true);
+});
+
+test('guide tabs follow the ARIA pattern and glide', () => {
+  const realm = boot();
+  const { document } = realm;
+  const tabs = document.getElementById('guide-tabs');
+  const jsonTab = document.getElementById('tab-json');
+  const curlPanel = document.getElementById('panel-curl');
+  const jsonPanel = document.getElementById('panel-json');
+
+  assert.equal(tabs.dataset.active, '0');
+  assert.equal(document.getElementById('tab-curl').getAttribute('aria-selected'), 'true');
+  assert.equal(curlPanel.hidden, false);
+  assert.equal(jsonPanel.hidden, true);
+
+  jsonTab.click();
+  assert.equal(tabs.dataset.active, '2');
+  assert.equal(jsonTab.getAttribute('aria-selected'), 'true');
+  assert.equal(jsonTab.tabIndex, 0);
+  assert.equal(document.getElementById('tab-curl').tabIndex, -1);
+  assert.equal(jsonPanel.hidden, false);
+  assert.equal(curlPanel.hidden, true);
+
+  // arrow keys move between tabs, wrapping at the ends
+  jsonTab.dispatchEvent({ type: 'keydown', key: 'ArrowRight' });
+  assert.equal(tabs.dataset.active, '3');
+  document.getElementById('tab-response').dispatchEvent({ type: 'keydown', key: 'ArrowRight' });
+  assert.equal(tabs.dataset.active, '0');
+  document.getElementById('tab-curl').dispatchEvent({ type: 'keydown', key: 'ArrowLeft' });
+  assert.equal(tabs.dataset.active, '4');
+});
+
+test('empty state hands over to the result and comes back after Clear', () => {
+  const realm = boot();
+  const { document } = realm;
+  const emptyState = document.getElementById('empty-state');
+  assert.equal(emptyState.hidden, false);
+
+  document.getElementById('empty-sample').click();
+  assert.equal(emptyState.hidden, true);
+  assert.equal(document.getElementById('output').hidden, false);
+
+  document.getElementById('clear').click();
+  assert.equal(emptyState.hidden, false);
+  assert.equal(document.getElementById('result').hidden, true);
+});
+
+test('every sample chip loads a format that converts', () => {
+  const cases = [
+    ['sample-netscape', 'netscape'],
+    ['sample-json', 'json'],
+    ['sample-header', 'header'],
+    ['sample-setcookie', 'set-cookie'],
+    ['sample-curl', 'curl'],
+  ];
+  for (const [id, format] of cases) {
+    const realm = boot();
+    const { document } = realm;
+    document.getElementById(id).click();
+    const badge = document.getElementById('detect-badge');
+    assert.equal(badge.dataset.format, format, id + ' should detect as ' + format);
+    assert.equal(document.getElementById('output').hidden, false, id + ' should convert');
+    const payload = JSON.parse(document.getElementById('output').value);
+    assert.equal(typeof payload.sapisid, 'string');
+    assert.match(payload.cookie, /^SID=SAMPLE-sid-replace-me/);
+  }
+});
+
+test('the coverage meter reports how many required cookies are usable', () => {
+  const realm = boot();
+  const { document, clock } = realm;
+  document.getElementById('input').value = FULL;
+  document.getElementById('convert').click();
+  clock.runAll();
+
+  const coverage = document.getElementById('coverage');
+  assert.equal(coverage.dataset.progress, '6');
+  assert.equal(document.getElementById('coverage-fill').style.getPropertyValue('--progress'), '1');
+  assert.equal(document.getElementById('coverage-count').textContent, '6');
+  assert.match(coverage.getAttribute('aria-label'), /6 of 6/);
+
+  // a partial export reports the shortfall
+  document.getElementById('input').value = netscape(['SID', 'HSID']);
+  document.getElementById('convert').click();
+  clock.runAll();
+  assert.equal(document.getElementById('coverage').dataset.progress, '2');
+});
+
+test('large inputs show a skeleton instead of freezing the page', () => {
+  const realm = boot();
+  const { document, clock } = realm;
+  document.getElementById('input').value = 'x'.repeat(200000);
+  document.getElementById('convert').click();
+
+  const skeleton = document.getElementById('result-skeleton');
+  assert.equal(skeleton.hidden, false, 'skeleton should be visible while parsing');
+
+  clock.runAll();
+  assert.equal(skeleton.hidden, true);
+  assert.match(document.getElementById('status').className, /banner-err/);
+});
+
+test('Clear offers an Undo that restores the previous state', () => {
+  const realm = boot();
+  const { document, clock } = realm;
+  document.getElementById('input').value = FULL;
+  document.getElementById('convert').click();
+  const payloadBefore = document.getElementById('output').value;
+
+  document.getElementById('clear').click();
+  const toasts = document.getElementById('toasts');
+  const undo = toasts.children[0].children.filter((node) => node.classList.contains('toast-action'))[0];
+  assert.ok(undo, 'the Clear toast should offer an action');
+  assert.equal(undo.textContent, 'Undo');
+
+  undo.click();
+  clock.runAll();
+  assert.equal(document.getElementById('input').value, FULL);
+  assert.equal(document.getElementById('output').value, payloadBefore);
+  assert.equal(document.getElementById('result').hidden, false);
+});
+
+test('the mobile bar convert button mirrors the primary action', () => {
+  const realm = boot();
+  const { document } = realm;
+  const barConvert = document.getElementById('bar-convert');
+  assert.equal(barConvert.disabled, true);
+
+  document.getElementById('input').value = FULL;
+  document.getElementById('input').dispatchEvent({ type: 'input' });
+  realm.clock.runDue(200);
+  assert.equal(barConvert.disabled, false);
+
+  barConvert.click();
+  assert.equal(document.getElementById('output').hidden, false);
+});
+
+test('scroll-reveal is applied to entrance elements', () => {
+  const realm = boot();
+  const { document } = realm;
+  assert.equal(document.querySelector('.input-card').classList.contains('is-visible'), true);
+  assert.equal(document.getElementById('empty-state').classList.contains('is-visible'), true);
+});
+
+test('icon-only controls all carry an accessible name', () => {
+  const realm = boot();
+  const { document } = realm;
+  const iconButtons = document.querySelectorAll('.icon-btn');
+  assert.ok(iconButtons.length >= 3);
+  for (const button of iconButtons) {
+    const label = button.getAttribute('aria-label');
+    assert.ok(label && label.trim().length > 0, 'icon button is missing aria-label');
+  }
+  for (const tab of document.querySelectorAll('[role="tab"]')) {
+    assert.ok(tab.textContent.trim().length > 0, 'tab needs a visible label');
+  }
 });

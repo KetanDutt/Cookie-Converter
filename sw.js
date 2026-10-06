@@ -13,7 +13,7 @@
  * application files are cached.
  */
 
-const VERSION = '2.2.0';
+const VERSION = '2.3.0';
 const CACHE = 'gcc-static-' + VERSION;
 
 /** Files precached on install so the very first offline load works. */
@@ -24,6 +24,7 @@ const PRECACHE = [
   './site.webmanifest',
   './assets/style.css',
   './assets/app.js',
+  './assets/ui.js',
   './assets/converter.js',
   './assets/favicon.svg',
 ];

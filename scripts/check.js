@@ -102,15 +102,36 @@ const missingIds = [...lookedUp].filter((id) => !htmlIds.has(id));
 if (missingIds.length) fail('app.js references missing element id(s): ' + missingIds.join(', '));
 else ok(`${lookedUp.size} element id(s) referenced by app.js all exist`);
 
-// ids referenced from markup (labels, aria-*) count as used too
-const ariaIds = new Set(Array.from(
+// Ids referenced from markup count as used too: labels, aria-* wiring, the
+// `<use href="#…">` lookups that pull symbols out of the icon sprite, and the
+// icon names the runtime asks for through UI.icon('name') / icon: 'name'
+// literals or lookup tables such as STATUS_ICONS.
+const jsBundle = appJs + read('assets/ui.js');
+const iconRefs = new Set([
+  ...Array.from(jsBundle.matchAll(/\bicon(?:\(|:\s*)'([a-z0-9-]+)'/g), (m) => m[1]),
+  ...Array.from(jsBundle.matchAll(/\b[A-Z_]*ICONS\s*=\s*\{([^}]*)\}/g), (m) =>
+    Array.from(m[1].matchAll(/'([a-z0-9-]+)'/g), (x) => x[1])).flat(),
+]);
+const spriteNames = new Set(Array.from(
+  html.matchAll(/<symbol id="i-([a-z0-9-]+)"/g), (m) => m[1]));
+
+const referencedIds = new Set(Array.from(
   html.matchAll(/(?:aria-labelledby|aria-describedby|aria-controls|for)="([^"]+)"/g),
   (m) => m[1]
-).flatMap((value) => value.split(/\s+/)));
+)
+  .concat(Array.from(html.matchAll(/(?:xlink:href|href)="#([^"]+)"/g), (m) => m[1]))
+  .concat([...iconRefs].map((name) => 'i-' + name))
+  .flatMap((value) => value.split(/\s+/)));
 
-const unusedIds = [...htmlIds].filter((id) => !lookedUp.has(id) && !ariaIds.has(id));
+const unusedIds = [...htmlIds].filter((id) => !lookedUp.has(id) && !referencedIds.has(id));
 if (unusedIds.length) warn('index.html ids never referenced by app.js: ' + unusedIds.join(', '));
 else ok('no unused element ids in index.html');
+
+// Both directions of the sprite contract are worth guarding: a typo renders an
+// invisible glyph, a stale symbol is dead weight.
+const missingIcons = [...iconRefs].filter((name) => !spriteNames.has(name));
+if (missingIcons.length) fail('icon(s) requested but missing from the sprite: ' + missingIcons.join(', '));
+else ok(`all ${iconRefs.size} runtime icon name(s) exist in the ${spriteNames.size}-symbol sprite`);
 
 // Classes toggled from JS must have a matching CSS rule per variant.
 const variantFamilies = {
@@ -127,7 +148,74 @@ for (const [prefix, variants] of Object.entries(variantFamilies)) {
 if (!results.fail) ok('every JS-toggled status class has a CSS rule');
 
 /* ------------------------------------------------------------------ *
- * 3 · CSP allows exactly what the app needs
+ * 3 · Browser chrome colours are palette tokens, not free-hand hexes
+ * ------------------------------------------------------------------ */
+
+section('Theme colours');
+
+const darkBg = (css.match(/--bg:\s*(#[0-9a-fA-F]{6})/) || [])[1];
+const lightBlock = css.match(/\/\* @light-tokens:start \*\/([\s\S]*?)\/\* @light-tokens:end \*\//);
+const lightBg = lightBlock && (lightBlock[1].match(/--bg:\s*(#[0-9a-fA-F]{6})/) || [])[1];
+
+function themeColours(source) {
+  return Array.from(source.matchAll(/content="(#[0-9a-fA-F]{6})" media="\(prefers-color-scheme: (dark|light)\)"/g))
+    .map((m) => ({ hex: m[1].toLowerCase(), scheme: m[2] }));
+}
+
+let colourDrift = [];
+for (const file of ['index.html', '404.html']) {
+  const found = themeColours(read(file));
+  if (found.length !== 2) colourDrift.push(`${file} should declare both theme colours`);
+  for (const { hex, scheme } of found) {
+    const expected = scheme === 'dark' ? darkBg : lightBg;
+    if (hex !== expected) colourDrift.push(`${file} ${scheme} theme-color is ${hex}, --bg is ${expected}`);
+  }
+}
+const webmanifest = JSON.parse(read('site.webmanifest'));
+if (darkBg && webmanifest.theme_color.toLowerCase() !== darkBg) {
+  colourDrift.push(`site.webmanifest theme_color is ${webmanifest.theme_color}, --bg is ${darkBg}`);
+}
+if (darkBg && webmanifest.background_color.toLowerCase() !== darkBg) {
+  colourDrift.push(`site.webmanifest background_color is ${webmanifest.background_color}, --bg is ${darkBg}`);
+}
+
+if (colourDrift.length) fail('theme colour drift: ' + colourDrift.join('; '));
+else ok(`browser chrome colours match --bg (${darkBg} dark / ${lightBg} light)`);
+
+/* ------------------------------------------------------------------ *
+ * 4 · The 404 page is a separate document — guard it the same way
+ * ------------------------------------------------------------------ */
+
+section('404 page');
+
+const notFound = read('404.html');
+const notFoundClasses = new Set(
+  Array.from(notFound.matchAll(/class="([^"]+)"/g), (m) => m[1])
+    .flatMap((value) => value.split(/\s+/))
+    .filter(Boolean)
+);
+// Utility classes are declared in the same stylesheet as the app's.
+const orphanClasses = [...notFoundClasses].filter((name) => !css.includes('.' + name));
+if (orphanClasses.length) {
+  fail('404.html uses class(es) with no CSS rule: ' + orphanClasses.join(', '));
+} else {
+  ok(`all ${notFoundClasses.size} class(es) on the 404 page are styled`);
+}
+
+if (/\sstyle="/.test(notFound) || /<script/i.test(notFound)) {
+  fail('404.html must stay free of inline styles and scripts (its CSP forbids them)');
+} else {
+  ok('404.html ships no inline styles or scripts');
+}
+
+if (/\.reveal\b/.test(notFound)) {
+  fail('404.html cannot use .reveal — it needs JS to become visible');
+} else {
+  ok('404.html does not depend on scripted reveals');
+}
+
+/* ------------------------------------------------------------------ *
+ * 5 · CSP allows exactly what the app needs
  * ------------------------------------------------------------------ */
 
 section('Content-Security-Policy');
@@ -149,7 +237,7 @@ if (inlineHandler) fail('index.html uses an inline event handler (blocked by CSP
 if (!inlineStyle && !inlineHandler) ok('no inline styles or event handlers in the markup');
 
 /* ------------------------------------------------------------------ *
- * 4 · No dynamic innerHTML (XSS surface)
+ * 6 · No dynamic innerHTML (XSS surface)
  * ------------------------------------------------------------------ */
 
 section('Injection safety');
@@ -165,7 +253,7 @@ if (found.length) fail('dynamic code execution found: ' + found.join(', '));
 else ok('no document.write / eval / new Function');
 
 /* ------------------------------------------------------------------ *
- * 5 · The duplicated light palette stays identical
+ * 7 · The duplicated light palette stays identical
  * ------------------------------------------------------------------ */
 
 section('Theme tokens');
@@ -186,7 +274,7 @@ if (lightBlocks.length !== 2) {
 }
 
 /* ------------------------------------------------------------------ *
- * 6 · Everything referenced actually exists
+ * 8 · Everything referenced actually exists
  * ------------------------------------------------------------------ */
 
 section('File references');
@@ -245,7 +333,7 @@ if (missingFormats.length) fail('FORMATS is missing: ' + missingFormats.join(', 
 else ok('engine FORMATS covers all documented input formats');
 
 /* ------------------------------------------------------------------ *
- * 7 · Shipped file set & repository hygiene
+ * 9 · Shipped file set & repository hygiene
  * ------------------------------------------------------------------ */
 
 section('Shipped files');
@@ -253,7 +341,7 @@ section('Shipped files');
 // Exactly what a static host must receive — this list used to live in CI.
 const SHIPPED = [
   'index.html', '404.html', 'sw.js', 'site.webmanifest', '_headers', '.nojekyll',
-  'assets/app.js', 'assets/converter.js', 'assets/style.css',
+  'assets/app.js', 'assets/converter.js', 'assets/style.css', 'assets/ui.js',
   'assets/favicon.svg', 'assets/icon-maskable.svg',
   'LICENSE', 'README.md', 'docs/README.md',
 ];
@@ -286,7 +374,7 @@ if (tracked) {
 }
 
 /* ------------------------------------------------------------------ *
- * 8 · License metadata agrees with LICENSE
+ * 10 · License metadata agrees with LICENSE
  * ------------------------------------------------------------------ */
 
 section('License');
@@ -309,7 +397,7 @@ if (reserved) {
 }
 
 /* ------------------------------------------------------------------ *
- * 9 · Hygiene
+ *119 · Hygiene
  * ------------------------------------------------------------------ */
 
 section('Hygiene');

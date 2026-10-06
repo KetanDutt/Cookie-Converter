@@ -1,23 +1,20 @@
 /**
- * A tiny, dependency-free DOM stub.
+ * A tiny, dependency-free DOM.
  * ============================================================================
- * The project ships no test dependencies, so instead of pulling in jsdom the
- * UI tests run `assets/app.js` inside a `node:vm` context backed by this
- * minimal implementation: enough DOM to boot the app, drive the real event
- * handlers and assert on the real DOM mutations.
+ * The project ships no test dependencies, so instead of pulling in jsdom the UI
+ * tests run `assets/app.js` inside a `node:vm` context backed by this minimal
+ * implementation.
  *
- * It is intentionally small — it implements exactly the surface `app.js`
- * touches, and it reads the element ids straight out of `index.html` so the
- * stub can never drift from the real markup.
+ * It is *parsed from the real `index.html`*, which is what makes the UI tests
+ * meaningful: element ids, classes, roles, aria attributes, nesting and boolean
+ * attributes (`hidden`, `disabled`, `checked`) all match what a browser would
+ * build. A typo'd id, a missing parent or a misplaced `hidden` fails a test
+ * instead of being papered over by a hand-maintained fixture.
  *
- * What is faithful:
- *   • element tree with bubbling dispatch, `closest()`, `querySelector()` for
- *     the selectors the app uses;
- *   • `classList`, `dataset`, attributes, `textContent`, `hidden`, `value`;
- *   • a controllable clock (`setTimeout` never really schedules) so toast and
- *     debounce timers are deterministic and never keep Node alive.
- *
- * What is stubbed: layout, rendering, CSS, real timers, real files.
+ * Faithful:  element tree · attributes · classList · dataset · bubbling events ·
+ *            closest()/contains() · querySelector(All) for simple selectors ·
+ *            dialog showModal/close · IntersectionObserver · rAF-backed clock.
+ * Stubbed:   layout, rendering, CSS, real timers, real files, real network.
  */
 'use strict';
 
@@ -27,7 +24,13 @@ const vm = require('node:vm');
 
 const ROOT = path.join(__dirname, '..', '..');
 
-const VOID_TAGS = new Set(['input', 'img', 'br', 'hr', 'meta', 'link', 'source']);
+/* Tags that never have children in HTML. */
+const VOID_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+  'link', 'meta', 'param', 'source', 'track', 'wbr']);
+
+/* Subtrees the stub does not need to build (pure decoration / sitemap-ish). */
+const SKIP_SUBTREES = new Set(['svg']);
+const SKIP_TAGS = new Set(['script', 'style']);
 
 /* ------------------------------------------------------------------ *
  * classList
@@ -42,18 +45,29 @@ function createClassList(node) {
       for (const name of names) if (!list.includes(name)) list.push(name);
       write(list);
     },
-    remove(...names) {
-      write(parse().filter((name) => !names.includes(name)));
-    },
+    remove(...names) { write(parse().filter((name) => !names.includes(name))); },
     toggle(name, force) {
       const has = parse().includes(name);
-      const shouldHave = force === undefined ? !has : Boolean(force);
-      if (shouldHave) this.add(name); else this.remove(name);
-      return shouldHave;
+      const next = force === undefined ? !has : Boolean(force);
+      if (next) this.add(name); else this.remove(name);
+      return next;
     },
-    contains(name) {
-      return parse().includes(name);
-    },
+    contains(name) { return parse().includes(name); },
+    get length() { return parse().length; },
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * style (needs setProperty for CSS custom properties)
+ * ------------------------------------------------------------------ */
+
+function createStyle() {
+  const props = new Map();
+  return {
+    setProperty(name, value) { props.set(name, String(value)); },
+    getPropertyValue(name) { return props.get(name) || ''; },
+    removeProperty(name) { props.delete(name); },
+    get cssText() { return [...props.entries()].map(([k, v]) => `${k}: ${v}`).join('; '); },
   };
 }
 
@@ -63,68 +77,74 @@ function createClassList(node) {
 
 class StubElement {
   constructor(tagName, document) {
+    this.nodeType = 1;
     this.tagName = String(tagName).toUpperCase();
+    this.namespaceURI = null;
     this.ownerDocument = document;
     this.parentNode = null;
-    this.children = [];
+    this.childNodes = [];
     this.attributes = new Map();
     this.dataset = {};
-    this.style = {};
+    this.style = createStyle();
     this.value = '';
     this.checked = false;
-    this.hidden = false;
     this.disabled = false;
+    this.hidden = false;
+    this.open = false;
+    this.tabIndex = 0;
     this.href = '';
     this.download = '';
     this.type = '';
+    this.title = '';
     this.files = [];
     this.className = '';
-    this.textValue = '';
     this.listeners = new Map();
     this.classList = createClassList(this);
   }
 
-  /* —— children —— */
+  /* —— tree —— */
 
   appendChild(child) {
     if (child && child.isFragment) {
-      for (const grandChild of child.children.slice()) this.appendChild(grandChild);
-      child.children = [];
+      for (const grandChild of child.childNodes.slice()) this.appendChild(grandChild);
+      child.childNodes = [];
       return child;
     }
     child.parentNode = this;
-    this.children.push(child);
+    this.childNodes.push(child);
     return child;
   }
 
-  append(...nodes) {
-    for (const node of nodes) this.appendChild(node);
+  append(...nodes) { for (const node of nodes) this.appendChild(node); }
+  removeChild(child) { this.childNodes = this.childNodes.filter((item) => item !== child); child.parentNode = null; }
+  remove() { if (this.parentNode) this.parentNode.removeChild(this); }
+
+  contains(node) {
+    let current = node;
+    while (current) {
+      if (current === this) return true;
+      current = current.parentNode;
+    }
+    return false;
   }
 
-  removeChild(child) {
-    this.children = this.children.filter((item) => item !== child);
-    child.parentNode = null;
-  }
-
-  remove() {
-    if (this.parentNode) this.parentNode.removeChild(this);
-  }
-
+  /** Element children only — mirrors the DOM `children` collection. */
+  get children() { return this.childNodes.filter((node) => node.nodeType === 1); }
   get firstElementChild() { return this.children[0] || null; }
   get lastElementChild() { return this.children[this.children.length - 1] || null; }
   get childElementCount() { return this.children.length; }
+  get parentElement() { return this.parentNode; }
 
   /* —— text —— */
 
   get textContent() {
-    if (this.children.length === 0) return this.textValue;
-    return this.textValue + this.children.map((child) => child.textContent).join('');
+    return this.childNodes.map((child) => child.textContent).join('');
   }
 
   set textContent(value) {
-    this.textValue = value === null || value === undefined ? '' : String(value);
-    for (const child of this.children) child.parentNode = null;
-    this.children = [];
+    const text = value === null || value === undefined ? '' : String(value);
+    for (const child of this.childNodes) child.parentNode = null;
+    this.childNodes = text ? [createTextNode(text)] : [];
   }
 
   /* —— attributes —— */
@@ -134,31 +154,35 @@ class StubElement {
     if (name === 'id') this.id = String(value);
     if (name === 'class') this.className = String(value);
     if (name === 'type') this.type = String(value);
+    if (name === 'href') this.href = String(value);
+    if (name === 'role') this.role = String(value);
     if (name.startsWith('data-')) this.dataset[name.slice(5).replace(/-([a-z])/g, (m, c) => c.toUpperCase())] = String(value);
   }
 
   getAttribute(name) {
     if (name === 'id') return this.id || null;
     if (name === 'class') return this.className || null;
+    if (name === 'type') return this.type || null;
+    if (name === 'href') return this.href || null;
     return this.attributes.has(name) ? this.attributes.get(name) : null;
   }
 
   hasAttribute(name) { return this.attributes.has(name); }
-  removeAttribute(name) { this.attributes.delete(name); }
+  removeAttribute(name) { this.attributes.delete(name); if (name === 'id') this.id = undefined; }
 
   /* —— events —— */
 
-  addEventListener(type, handler) {
+  addEventListener(type, handler, options) {
     if (!this.listeners.has(type)) this.listeners.set(type, []);
-    this.listeners.get(type).push(handler);
+    this.listeners.get(type).push({ handler, capture: Boolean(options && options.capture) });
   }
 
   removeEventListener(type, handler) {
     const list = this.listeners.get(type) || [];
-    this.listeners.set(type, list.filter((item) => item !== handler));
+    this.listeners.set(type, list.filter((item) => item.handler !== handler));
   }
 
-  /** Dispatch with bubbling up to the document node. */
+  /** Dispatch with bubbling to the document node. */
   dispatchEvent(event) {
     const evt = event || {};
     evt.type = evt.type || 'event';
@@ -167,45 +191,82 @@ class StubElement {
     if (!evt.stopPropagation) evt.stopPropagation = () => { evt.stopped = true; };
     if (!evt.target) evt.target = this;
     if (evt.dataTransfer === undefined) evt.dataTransfer = null;
+    if (evt.clipboardData === undefined) evt.clipboardData = undefined;
 
     let node = this;
     while (node) {
       const list = node.listeners && node.listeners.get(evt.type);
-      if (list) for (const handler of list.slice()) handler.call(node, evt);
+      if (list) for (const entry of list.slice()) entry.handler.call(node, evt);
       if (evt.stopped) break;
       node = node.parentNode;
     }
     return !evt.defaultPrevented;
   }
 
-  click() {
-    return this.dispatchEvent({ type: 'click' });
-  }
-
+  click() { return this.dispatchEvent({ type: 'click' }); }
   focus() { this.ownerDocument.activeElement = this; }
   blur() { if (this.ownerDocument.activeElement === this) this.ownerDocument.activeElement = null; }
   select() { this.selected = true; }
   scrollIntoView() { this.scrolledIntoView = true; }
+  getBoundingClientRect() { return { top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0, x: 0, y: 0 }; }
 
-  /* —— queries —— */
+  /* native <dialog> surface */
+  showModal() { this.open = true; this.setAttribute('open', ''); }
+  show() { this.showModal(); }
+  close() { this.open = false; this.removeAttribute('open'); this.dispatchEvent({ type: 'close' }); }
+
+  /* —— selectors —— */
 
   matches(selector) {
-    for (const part of String(selector).trim().split(/\s*,\s*/)) {
+    const parts = String(selector).trim().split(/\s*,\s*/);
+    for (const part of parts) {
       const simple = part.trim();
       if (!simple) continue;
-      const tagAndClass = /^([a-z]+)?(?:\.([\w-]+))?$/.exec(simple);
-      if (simple.startsWith('#')) {
-        if (this.id === simple.slice(1)) return true;
-        continue;
-      }
-      if (!tagAndClass) continue;
-      const [, tag, className] = tagAndClass;
-      if (tag && this.tagName !== tag.toUpperCase()) continue;
-      if (className && !this.classList.contains(className)) continue;
-      if (!tag && !className) continue;
-      return true;
+      if (this.matchesSimple(simple)) return true;
     }
     return false;
+  }
+
+  matchesSimple(simple) {
+    if (simple.startsWith('#')) return this.id === simple.slice(1);
+    if (simple.startsWith('.')) return this.classList.contains(simple.slice(1));
+    if (simple.startsWith('[')) {
+      const match = /^\[([\w-]+)(?:([~|^$*]?=)"?([^"\]]*)"?)?\]$/.exec(simple);
+      if (!match) return false;
+      const [, name, operator, value] = match;
+      const actual = this.getAttribute(name);
+      if (actual === null || actual === undefined) return false;
+      if (!operator) return true;
+      if (operator === '=') return actual === value;
+      if (operator === '^=') return String(actual).startsWith(value);
+      if (operator === '$=') return String(actual).endsWith(value);
+      return String(actual).includes(value);
+    }
+    const tagAndClass = /^([a-zA-Z][\w-]*)?(?:\.([\w-]+))?$/.exec(simple);
+    if (!tagAndClass || (!tagAndClass[1] && !tagAndClass[2])) return false;
+    const [, tag, className] = tagAndClass;
+    if (tag && this.tagName !== tag.toUpperCase()) return false;
+    if (className && !this.classList.contains(className)) return false;
+    return true;
+  }
+
+  /** Search this subtree (excluding self) for the first match of a simple selector. */
+  findDescendant(selector) {
+    for (const child of this.children) {
+      if (child.matches && child.matches(selector)) return child;
+      const deeper = child.findDescendant ? child.findDescendant(selector) : null;
+      if (deeper) return deeper;
+    }
+    return null;
+  }
+
+  findAllDescendants(selector, out) {
+    const results = out || [];
+    for (const child of this.children) {
+      if (child.matches && child.matches(selector)) results.push(child);
+      if (child.findAllDescendants) child.findAllDescendants(selector, results);
+    }
+    return results;
   }
 
   closest(selector) {
@@ -217,18 +278,25 @@ class StubElement {
     return null;
   }
 
+  /* Supports "#id", ".class", "tag" and "#id tag" — all app.js uses. */
   querySelector(selector) {
-    return this.ownerDocument.querySelector(selector, this);
+    const parts = String(selector).trim().split(/\s+/);
+    if (parts.length === 2 && parts[0].startsWith('#')) {
+      const root = this.ownerDocument.getElementById(parts[0].slice(1));
+      if (!root) return null;
+      let found = root.findDescendant(parts[1]);
+      if (!found && /^[a-zA-Z][\w-]*$/.test(parts[1])) {
+        found = this.ownerDocument.createElement(parts[1]);
+        root.appendChild(found);
+      }
+      return found;
+    }
+    if (this.matches && this.matches(selector)) return this;
+    return this.findDescendant(selector);
   }
 
-  /** Depth-first search over this subtree (document searches the whole tree). */
-  find(predicate) {
-    for (const child of this.children) {
-      if (predicate(child)) return child;
-      const deeper = child.find(predicate);
-      if (deeper) return deeper;
-    }
-    return null;
+  querySelectorAll(selector) {
+    return this.findAllDescendants(selector);
   }
 }
 
@@ -240,126 +308,181 @@ class StubDocument extends StubElement {
   constructor() {
     super('#document', null);
     this.ownerDocument = this;
-    this.byId = new Map();
     this.readyState = 'complete';
     this.activeElement = null;
     this.documentElement = new StubElement('html', this);
     this.body = new StubElement('body', this);
+    this.head = new StubElement('head', this);
+    this.documentElement.appendChild(this.head);
     this.documentElement.appendChild(this.body);
     this.appendChild(this.documentElement);
     this.execCommand = () => true;
-    this.createdElements = [];
   }
 
-  createElement(tagName) {
+  createElement(tagName) { return new StubElement(tagName, this); }
+
+  createElementNS(namespace, tagName) {
     const node = new StubElement(tagName, this);
-    this.createdElements.push(node);
+    node.namespaceURI = namespace;
     return node;
   }
 
-  /** A fragment behaves like an element whose children get moved on append. */
   createDocumentFragment() {
     const fragment = new StubElement('#fragment', this);
     fragment.isFragment = true;
     return fragment;
   }
 
-  /** Register a pre-existing element (mirrors `id="…"` in index.html). */
-  register(id, tagName, parent) {
-    const node = new StubElement(tagName || 'div', this);
-    node.id = id;
-    node.setAttribute('id', id);
-    (parent || this.body).appendChild(node);
-    this.byId.set(id, node);
-    return node;
-  }
-
   getElementById(id) {
-    return this.byId.get(id) || null;
+    if (this.id === id) return this;
+    return this.body.findAllDescendants('#' + id)[0] || this.head.findAllDescendants('#' + id)[0] || null;
   }
 
-  querySelector(selector, scope) {
-    const query = String(selector).trim();
-
-    if (query.startsWith('#')) {
-      const [first, ...rest] = query.split(/\s+/);
-      const root = this.byId.get(first.slice(1));
+  querySelector(selector) {
+    const parts = String(selector).trim().split(/\s+/);
+    if (parts.length === 2 && parts[0].startsWith('#')) {
+      const root = this.getElementById(parts[0].slice(1));
       if (!root) return null;
-      if (!rest.length) return root;
-      // Only the compound selectors this app uses: "#table tbody".
-      const tag = rest[0];
-      let child = root.find((node) => node.tagName === tag.toUpperCase());
-      if (!child) {
-        child = this.createElement(tag);
-        root.appendChild(child);
+      let found = root.findDescendant(parts[1]);
+      if (!found && /^[a-zA-Z][\w-]*$/.test(parts[1])) {
+        found = this.createElement(parts[1]);
+        root.appendChild(found);
       }
-      return child;
+      return found;
     }
+    return this.body.findDescendant(selector) || this.head.findDescendant(selector);
+  }
 
-    if (query.startsWith('.')) {
-      const className = query.slice(1);
-      const roots = scope ? [scope] : [this.body, ...this.createdElements];
-      for (const element of this.byId.values()) roots.push(element);
-      for (const root of roots) {
-        if (root.classList && root.classList.contains(className)) return root;
-        const found = root.find((node) => node.classList && node.classList.contains(className));
-        if (found) return found;
-      }
-      return null;
-    }
-
-    return null;
+  querySelectorAll(selector) {
+    return this.body.findAllDescendants(selector).concat(this.head.findAllDescendants(selector));
   }
 }
 
 /* ------------------------------------------------------------------ *
- * index.html → element registry
+ * Mini HTML parser — builds the document tree from index.html
  * ------------------------------------------------------------------ */
 
-const TAG_BY_ID = {
-  file: 'input',
-  input: 'textarea',
-  output: 'textarea',
-  filter: 'input',
-  reveal: 'input',
-  'only-required': 'input',
-  'opt-extra': 'input',
-  'opt-expired': 'input',
-  convert: 'button',
-  sample: 'button',
-  clear: 'button',
-  copy: 'button',
-  'download-json': 'button',
-  'download-txt': 'button',
-  'fmt-pretty': 'button',
-  'fmt-min': 'button',
-  'theme-toggle': 'button',
-  checklist: 'ul',
-  notes: 'ul',
-  'report-list': 'ul',
-  report: 'details',
-  status: 'div',
-  toasts: 'div',
-  result: 'section',
-  'table-note': 'p',
-  'privacy-note': 'p',
-};
+const ATTR_RE = /([a-zA-Z_:][-\w:.]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g;
 
-/** Build a document whose ids exactly mirror index.html. */
-function createDocument() {
-  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+/** Minimal text node — only the bits the tests observe. */
+function createTextNode(text) {
+  return { nodeType: 3, parentNode: null, textContent: String(text) };
+}
+
+function parseAttributes(source) {
+  const attributes = [];
+  ATTR_RE.lastIndex = 0;
+  let match;
+  while ((match = ATTR_RE.exec(source))) {
+    attributes.push({
+      name: match[1].toLowerCase(),
+      value: match[2] !== undefined ? match[2]
+        : match[3] !== undefined ? match[3]
+          : match[4] !== undefined ? match[4] : '',
+    });
+  }
+  return attributes;
+}
+
+/** Apply markup attributes to a stub node the way a browser would. */
+function applyAttributes(node, attributes) {
+  for (const { name, value } of attributes) {
+    if (name === 'class') { node.className = value; continue; }
+    if (name === 'id') { node.id = value; node.attributes.set('id', value); continue; }
+    node.attributes.set(name, value);
+    if (name === 'role') node.role = value;
+    if (name === 'type') node.type = value;
+    if (name === 'href') node.href = value;
+    if (name === 'value') node.value = value;
+    if (name === 'title') node.title = value;
+    if (name === 'hidden') node.hidden = true;
+    if (name === 'disabled') node.disabled = true;
+    if (name === 'checked') node.checked = true;
+    if (name === 'open') node.open = true;
+    if (name === 'tabindex') node.tabIndex = Number(value);
+    if (name.startsWith('data-')) {
+      node.dataset[name.slice(5).replace(/-([a-z])/g, (m, c) => c.toUpperCase())] = value;
+    }
+  }
+}
+
+/**
+ * Parse an HTML document into a StubDocument.
+ * Deliberately small: tags, attributes, comments, void elements, and skipping
+ * of `script`/`style`/`svg` subtrees.
+ */
+function parseDocument(html) {
   const doc = new StubDocument();
+  const source = html.replace(/<!--[\s\S]*?-->/g, '');
+  const stack = [doc.body];
+  let index = 0;
 
-  for (const match of html.matchAll(/id="([^"]+)"/g)) {
-    const id = match[1];
-    if (doc.byId.has(id)) continue;
-    doc.register(id, TAG_BY_ID[id] || 'div');
+  function pushText(text) {
+    if (!text) return;
+    const collapsed = text.replace(/\s+/g, ' ');
+    if (!collapsed.trim()) return;
+    stack[stack.length - 1].appendChild(createTextNode(collapsed.trim()));
   }
 
-  // The two structural lookups app.js performs with querySelector().
-  doc.register('segmented-anchor', 'div', doc.getElementById('output-tools') || doc.body);
-  doc.byId.get('segmented-anchor').className = 'segmented';
+  while (index < source.length) {
+    const lt = source.indexOf('<', index);
+    if (lt === -1) { pushText(source.slice(index)); break; }
+
+    pushText(source.slice(index, lt));
+
+    if (source.startsWith('<!', lt)) {
+      index = source.indexOf('>', lt) + 1 || source.length;
+      continue;
+    }
+
+    const gt = source.indexOf('>', lt);
+    if (gt === -1) break;
+    const raw = source.slice(lt + 1, gt);
+    index = gt + 1;
+
+    if (raw.startsWith('/')) { // closing tag
+      const name = raw.slice(1).trim().toLowerCase();
+      for (let i = stack.length - 1; i >= 1; i--) {
+        if (stack[i].tagName === name.toUpperCase()) { stack.length = i; break; }
+      }
+      continue;
+    }
+
+    const selfClosing = raw.endsWith('/');
+    const body = selfClosing ? raw.slice(0, -1) : raw;
+    const spaceAt = body.search(/[\s/]/);
+    const tagName = (spaceAt === -1 ? body : body.slice(0, spaceAt)).toLowerCase();
+    const attributes = spaceAt === -1 ? [] : parseAttributes(body.slice(spaceAt));
+    if (!tagName) continue;
+
+    if (SKIP_TAGS.has(tagName)) { // skip <script>/<style> entirely
+      const closeAt = source.toLowerCase().indexOf('</' + tagName, index);
+      index = closeAt === -1 ? source.length : source.indexOf('>', closeAt) + 1;
+      continue;
+    }
+
+    const parent = stack[stack.length - 1];
+    if (SKIP_SUBTREES.has(tagName)) { // skip <svg> subtrees (sprite, art)
+      const closeAt = source.toLowerCase().indexOf('</' + tagName, index);
+      index = closeAt === -1 ? source.length : source.indexOf('>', closeAt) + 1;
+      continue;
+    }
+
+    const node = doc.createElement(tagName);
+    applyAttributes(node, attributes);
+    parent.appendChild(node);
+
+    const isVoid = VOID_TAGS.has(tagName) || selfClosing;
+    if (!isVoid) stack.push(node);
+  }
+
   return doc;
+}
+
+/** Build a document whose tree matches index.html. */
+function createDocument() {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  return parseDocument(html);
 }
 
 /* ------------------------------------------------------------------ *
@@ -376,17 +499,19 @@ function createClock() {
       return id;
     },
     clearTimeout(id) { pending.delete(id); },
+    requestAnimationFrame(handler) { return this.setTimeout(() => handler(Date.now()), 16); },
+    cancelAnimationFrame(id) { pending.delete(id); },
     get size() { return pending.size; },
-    /** Run every pending callback (in scheduling order) exactly once. */
+    /** Run every pending callback, in scheduling order, until none remain. */
     runAll() {
       let guard = 0;
-      while (pending.size && guard++ < 500) {
+      while (pending.size && guard++ < 2000) {
         const [id, job] = pending.entries().next().value;
         pending.delete(id);
         job.handler();
       }
     },
-    /** Run callbacks scheduled with a delay <= maxDelay (default: 0 ms). */
+    /** Run callbacks scheduled with delay <= maxDelay. */
     runDue(maxDelay = 0) {
       for (const [id, job] of [...pending.entries()]) {
         if (job.delay <= maxDelay) {
@@ -399,7 +524,21 @@ function createClock() {
 }
 
 /* ------------------------------------------------------------------ *
- * Window / realm
+ * IntersectionObserver stub — resolves immediately as "in view"
+ * ------------------------------------------------------------------ */
+
+class StubIntersectionObserver {
+  constructor(callback) { this.callback = callback; this.targets = new Set(); }
+  observe(node) {
+    this.targets.add(node);
+    this.callback([{ isIntersecting: true, target: node, intersectionRatio: 1 }], this);
+  }
+  unobserve(node) { this.targets.delete(node); }
+  disconnect() { this.targets.clear(); }
+}
+
+/* ------------------------------------------------------------------ *
+ * Realm
  * ------------------------------------------------------------------ */
 
 function createRealm(options = {}) {
@@ -424,18 +563,29 @@ function createRealm(options = {}) {
       removeItem: (key) => storage.delete(key),
     },
     matchMedia: (query) => ({
-      matches: /prefers-color-scheme: light/.test(query) ? matchMediaState.matches : false,
+      matches: options.prefersLight && /prefers-color-scheme: light/.test(query),
       media: query,
       addEventListener: () => {},
+      removeEventListener: () => {},
       addListener: () => {},
     }),
     performance: { now: () => Date.now() },
+    innerWidth: 1280,
+    innerHeight: 900,
     scrollY: 0,
-    setTimeout: clock.setTimeout,
-    clearTimeout: clock.clearTimeout,
-    addEventListener: (type, handler) => doc.addEventListener(type, handler),
+    scrollTo: () => {},
+    setTimeout: (handler, delay) => clock.setTimeout(handler, delay),
+    clearTimeout: (id) => clock.clearTimeout(id),
+    requestAnimationFrame: (handler) => clock.requestAnimationFrame(handler),
+    cancelAnimationFrame: (id) => clock.cancelAnimationFrame(id),
+    addEventListener: (type, handler, opts) => doc.addEventListener(type, handler, opts),
+    removeEventListener: (type, handler) => doc.removeEventListener(type, handler),
+    IntersectionObserver: StubIntersectionObserver,
     URL: { createObjectURL: () => 'blob:stub', revokeObjectURL: () => {} },
     Blob: class BlobStub { constructor(parts, opts) { this.parts = parts; this.type = opts && opts.type; } },
+    FileReader: class FileReaderStub {
+      readAsText() { if (this.onerror) this.onerror(new Error('not implemented')); }
+    },
     Intl,
   };
 
@@ -445,8 +595,11 @@ function createRealm(options = {}) {
     globalThis: window,
     document: doc,
     console,
-    setTimeout: clock.setTimeout,
-    clearTimeout: clock.clearTimeout,
+    setTimeout: window.setTimeout,
+    clearTimeout: window.clearTimeout,
+    requestAnimationFrame: window.requestAnimationFrame,
+    cancelAnimationFrame: window.cancelAnimationFrame,
+    IntersectionObserver: StubIntersectionObserver,
     Promise,
     JSON,
     Math,
@@ -458,6 +611,7 @@ function createRealm(options = {}) {
     Boolean,
     RegExp,
     Error,
+    TypeError,
     Map,
     Set,
     Symbol,
@@ -465,12 +619,10 @@ function createRealm(options = {}) {
   });
 
   const context = vm.createContext(sandbox);
-
-  // The engine first (it defines window.CookieConverter), then the UI.
-  vm.runInContext(fs.readFileSync(path.join(ROOT, 'assets/converter.js'), 'utf8'), context,
-    { filename: 'assets/converter.js' });
-  vm.runInContext(fs.readFileSync(path.join(ROOT, 'assets/app.js'), 'utf8'), context,
-    { filename: 'assets/app.js' });
+  const sources = ['assets/converter.js', 'assets/ui.js', 'assets/app.js'];
+  for (const file of sources) {
+    vm.runInContext(fs.readFileSync(path.join(ROOT, file), 'utf8'), context, { filename: file });
+  }
 
   return {
     context,
@@ -478,11 +630,17 @@ function createRealm(options = {}) {
     document: doc,
     clock,
     storage,
-    matchMediaState,
     engine: window.CookieConverter,
+    ui: window.UI,
     /** Fire a document-level event (keydown, paste, …). */
     fire(type, event) {
       return doc.dispatchEvent(Object.assign({ type }, event || {}));
+    },
+    /** Make the page scroll to `y` and run the listener. */
+    scrollTo(y) {
+      window.scrollY = y;
+      doc.dispatchEvent({ type: 'scroll' });
+      clock.runDue(20);
     },
   };
 }
@@ -496,4 +654,4 @@ function makeFile(name, text) {
   };
 }
 
-module.exports = { createRealm, createDocument, createClock, makeFile, StubElement };
+module.exports = { createRealm, createDocument, createClock, makeFile, StubElement, parseDocument };

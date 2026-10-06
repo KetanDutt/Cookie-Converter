@@ -4,6 +4,61 @@ All notable changes to this project. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] — 2026-10-06
+
+Interface overhaul: the whole app is rebuilt as a "liquid glass" design system.
+Every feature, keyboard shortcut, download and offline path is unchanged — this
+release only touches how the app looks, moves and reads.
+
+### Added
+
+* **Tokenised glass material system** — `glass-sm` / `glass-md` / `glass-lg` /
+  `glass-tint` layers built from shared tokens (surfaces, blurs, radii, shadows,
+  motion, z-index). No hard-coded colours or timings in component rules, and an
+  opaque fallback for browsers without `backdrop-filter`.
+* **`assets/ui.js`** — a dependency-free UI layer (icons, toasts, popover,
+  dialog, tabs, scroll reveal, pointer shine, number roll) so behaviour stays
+  testable and no markup strings are built at runtime.
+* **Icon sprite** — 24 original single-stroke symbols inlined in `index.html`;
+  no external icon font, no network request, nothing inline-scripted.
+* **Ambient background** — two very slow drifting gradient fields plus a subtle
+  grain layer that give the glass something to refract. Both freeze under
+  `prefers-reduced-motion`.
+* **Guide dialog** — the five export methods moved into a native `<dialog>` with
+  ARIA tabs, so the page stays scannable without a wall of instructions.
+* **Empty, loading and stale states** — a first-run card, a skeleton for large
+  inputs, and a *stale* badge when the textarea changes after a conversion.
+* **Toasts** — floating glass confirmations, including an *Undo* action after
+  Clear.
+* **Motion tokens** — micro 120 ms, quick 180 ms, standard 260 ms, large
+  340–460 ms, with a spring easing for entrances. Reduced-motion collapses them
+  to state changes only.
+
+### Changed
+
+* **Layout** — a floating top bar with a gliding nav indicator, a sticky input
+  card above the result column on desktop, and a thumb-friendly bottom bar with
+  bottom sheets on phones.
+* **Typography** — system/Inter stack with a stronger scale, larger titles and
+  softer metadata; the mono stack is reserved for cookies, payloads and cURL.
+* **Forms, tables and lists** — translucent inputs with calm focus rings,
+  lighter row surfaces instead of a card per row, a sticky table header and
+  click-to-reveal cookie values.
+* **Dark mode** — deep neutral palette with controlled highlights instead of an
+  inversion of the light theme; both palettes stay byte-identical between the
+  system-preference and manual-theme blocks.
+* **Accessibility pass** — visible focus rings everywhere, `aria-expanded` on
+  the options panel, labelled icon buttons, a skip link, a live-region status
+  banner and reduced-motion/reduced-transparency support.
+* **`404.html`** — same glass language as the app instead of the old
+  inline-styled page.
+
+### Fixed
+
+* The mobile bar's options button no longer opens and instantly closes the
+  panel: the popover now treats both buttons as equal triggers and anchors
+  itself to whichever one was pressed.
+
 ## [2.2.0] — 2026-10-06
 
 Second hardening pass: two new input formats, a validated output contract, a
