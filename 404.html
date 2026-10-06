@@ -4,16 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Page not found — Gemini Cookie Converter</title>
+  <meta name="color-scheme" content="dark light">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <main style="text-align:center; padding-top:80px;">
-    <div class="card" style="max-width:520px; margin:0 auto;">
-      <h1>404</h1>
-      <p class="muted">That page doesn't exist.</p>
-      <p><a class="btn primary" href="./" style="display:inline-flex;">Back to the converter</a></p>
-      <p class="small muted">Looking for help? See the <a href="docs/README.md">documentation</a>.</p>
+  <div class="bg" aria-hidden="true">
+    <div class="bg-orb bg-orb-a"></div>
+    <div class="bg-orb bg-orb-b"></div>
+    <div class="bg-grain"></div>
+  </div>
+
+  <main class="page-404">
+    <div class="card glass reveal">
+      <p class="eyebrow">Error 404</p>
+      <h1>This page crumbled.</h1>
+      <p class="muted">The page you're looking for doesn't exist — but the converter is right where you left it.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="./">Back to the converter</a>
+        <a class="btn btn-ghost" href="docs/README.md">Documentation</a>
+      </div>
     </div>
   </main>
 </body>

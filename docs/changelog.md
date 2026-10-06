@@ -4,6 +4,31 @@ All notable changes to this project. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-10-06
+
+### Added — Liquid Glass design system
+
+* Original translucent "Liquid Glass" visual language: layered glass
+  materials (primary / secondary / floating), backdrop blur + saturation,
+  inner edge highlights, soft ambient shadows, and a low-contrast ambient
+  background the materials interact with.
+* Centralized design tokens — colors, glass opacities, blur levels, radii,
+  shadows, spacing, type scale, motion durations/easings, z-index layers.
+* Floating glass top bar that gains material as you scroll.
+* Floating glass **toasts** for transient events (file loaded, copied,
+  downloaded, sample loaded) with spring enter/exit motion.
+* Micro-interactions: gliding segmented-control thumb, animated theme-toggle
+  icon crossfade, spring switch, dropzone drag/lift feedback, staggered table
+  row entrances, file-loading spinner, hover lifts on buttons.
+* First-class light theme (rebuilt, not inverted), `prefers-reduced-motion`
+  support, GPU-friendly transform/opacity animations only.
+* Redesigned 404 page in the same material language.
+
+### Changed
+
+* Visual redesign only — parsing engine, selection rules, output format,
+  keyboard shortcuts, and all user flows are unchanged (all 21 tests pass).
+
 ## [2.0.0] - 2026-10-06
 
 ### Added

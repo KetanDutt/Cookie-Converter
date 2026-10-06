@@ -30,6 +30,8 @@ this tool turns any of those into the payload, safely and offline.
 * ✅ **Drag & drop, file browse, clipboard paste**, `Ctrl+Enter` to convert
 * ✅ **Pretty or minified output**, one-click copy (with fallback) and
   `cookie.json` download
+* ✅ **Liquid Glass UI** — original translucent material system with fluid
+  micro-interactions, glass toasts, and a scroll-reactive floating top bar
 * ✅ **Dark & light themes**, responsive layout, accessible status messages
 * ✅ **Hardened** — strict Content-Security-Policy, no network requests, no
   analytics, no storage of cookie data

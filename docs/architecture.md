@@ -73,6 +73,26 @@ Key decisions:
 * Table rows are built in one `DocumentFragment` (single reflow).
 * 5 MB input cap keeps the main thread responsive.
 
+## Design system
+
+`assets/style.css` is organized as a small design system:
+
+1. **Tokens** — every color, glass opacity, blur level, radius, shadow,
+   spacing step, font size, duration, easing, and z-index layer lives in
+   `:root` custom properties; the light theme re-declares the same tokens.
+2. **Materials** — three reusable glass surfaces: `.glass` (primary),
+   `.glass-soft` (secondary/recessed), `.glass-float` (popovers, toasts,
+   top bar when scrolled).
+3. **Components** — buttons, inputs, tables, switch, segmented control,
+   banners, and toasts all consume the same tokens.
+4. **Motion** — 150–420 ms durations, spring easing for interactive
+   elements, smooth easing for structural transitions; everything is
+   disabled under `prefers-reduced-motion`.
+
+The markup carries semantic hooks (`banner`, `drag-over`, `active`,
+`badge-*`, …) that `app.js` toggles; styling never depends on inline
+styles, which the strict CSP forbids anyway.
+
 ## Testing
 
 ```bash

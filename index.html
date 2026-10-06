@@ -12,62 +12,77 @@
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <header class="topbar">
+  <!-- Layer 0 · ambient background the glass materials interact with -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg-orb bg-orb-a"></div>
+    <div class="bg-orb bg-orb-b"></div>
+    <div class="bg-grain"></div>
+  </div>
+
+  <!-- Layer 3 · floating glass top bar -->
+  <header class="topbar glass" id="topbar">
     <div class="brand">
-      <img src="assets/favicon.svg" alt="" width="26" height="26">
-      <span>Gemini&nbsp;Cookie&nbsp;Converter</span>
+      <span class="brand-mark"><img src="assets/favicon.svg" alt="" width="22" height="22"></span>
+      <span class="brand-name">Cookie&nbsp;Converter</span>
     </div>
     <div class="topbar-actions">
-      <span class="privacy-chip" title="All processing happens in your browser. No network requests are made.">
-        <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M8 1a3 3 0 0 0-3 3v2H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1V4a3 3 0 0 0-3-3Zm-1.5 5V4a1.5 1.5 0 1 1 3 0v2h-3Z"/></svg>
-        100% client-side
+      <span class="chip" title="All processing happens in your browser. No network requests are made.">
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M8 1a3 3 0 0 0-3 3v2H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1V4a3 3 0 0 0-3-3Zm-1.5 5V4a1.5 1.5 0 1 1 3 0v2h-3Z"/></svg>
+        <span class="chip-label">On-device only</span>
       </span>
-      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle color theme" title="Toggle theme">
-        <svg class="icon-sun" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-11a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 0Zm0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13ZM2.34 2.34a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 1 1-1.06 1.06L2.34 3.4a.75.75 0 0 1 0-1.06Zm9.2 9.2a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 1 1-1.06 1.06l-1.06-1.06a.75.75 0 0 1 0-1.06ZM0 8a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 8Zm13 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 13 8ZM2.34 13.66a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06L3.4 13.66a.75.75 0 0 1-1.06 0Zm9.2-9.2a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06a.75.75 0 0 1-1.06 0Z"/></svg>
-        <svg class="icon-moon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M14.4 9.6A6.5 6.5 0 0 1 6.4 1.6 6.5 6.5 0 1 0 14.4 9.6Z"/></svg>
+      <button id="theme-toggle" class="icon-btn glass" type="button" aria-label="Toggle color theme" title="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-11a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 0Zm0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13ZM2.34 2.34a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 1 1-1.06 1.06L2.34 3.4a.75.75 0 0 1 0-1.06Zm9.2 9.2a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 1 1-1.06 1.06l-1.06-1.06a.75.75 0 0 1 0-1.06ZM0 8a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 8Zm13 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 13 8ZM2.34 13.66a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06L3.4 13.66a.75.75 0 0 1-1.06 0Zm9.2-9.2a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06a.75.75 0 0 1-1.06 0Z"/></svg>
+        <svg class="icon-moon" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M14.4 9.6A6.5 6.5 0 0 1 6.4 1.6 6.5 6.5 0 1 0 14.4 9.6Z"/></svg>
       </button>
     </div>
   </header>
 
   <main>
-    <section class="card" aria-labelledby="input-heading">
-      <h1 id="input-heading">Convert cookies for <span class="grad">gemini-web2api</span></h1>
-      <p class="muted">
-        Turn a Netscape cookie export, a browser-extension JSON export, or a raw
-        <code>Cookie</code> header into the JSON structure documented by
-        <a href="https://github.com/Sophomoresty/gemini-web2api" rel="noopener">gemini-web2api</a>.
-      </p>
+    <section class="card glass reveal" aria-labelledby="input-heading">
+      <div class="hero">
+        <p class="eyebrow">For gemini-web2api</p>
+        <h1 id="input-heading">Convert your cookies.<br>Nothing leaves this page.</h1>
+        <p class="lede">
+          Turn a Netscape export, a browser-extension JSON array, or a raw
+          <code>Cookie</code> header into the JSON payload documented by
+          <a href="https://github.com/Sophomoresty/gemini-web2api" rel="noopener">gemini-web2api</a> —
+          parsed entirely in your browser.
+        </p>
+      </div>
 
       <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Choose a cookie file or drag one here">
-        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 .97.76l.5 2.1a1 1 0 0 0 .72.73l2.1.5a1 1 0 0 1 0 1.94l-2.1.5a1 1 0 0 0-.73.72l-.5 2.1a1 1 0 0 1-1.93 0l-.5-2.1a1 1 0 0 0-.73-.73l-2.1-.5a1 1 0 0 1 0-1.93l2.1-.5a1 1 0 0 0 .73-.73l.5-2.1A1 1 0 0 1 12 3Zm-6.5 9a.75.75 0 0 1 .73.57l.27 1.1 1.1.27a.75.75 0 0 1 0 1.45l-1.1.27-.27 1.1a.75.75 0 0 1-1.45 0l-.27-1.1-1.1-.27a.75.75 0 0 1 0-1.45l1.1-.27.27-1.1A.75.75 0 0 1 5.5 12Zm12 2a.75.75 0 0 1 .73.57l.27 1.1 1.1.27a.75.75 0 0 1 0 1.45l-1.1.27-.27 1.1a.75.75 0 0 1-1.45 0l-.27-1.1-1.1-.27a.75.75 0 0 1 0-1.45l1.1-.27.27-1.1a.75.75 0 0 1 .72-.57Z"/></svg>
-        <div>
+        <span class="dropzone-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 3a1 1 0 0 1 .97.76l.5 2.1a1 1 0 0 0 .72.73l2.1.5a1 1 0 0 1 0 1.94l-2.1.5a1 1 0 0 0-.73.72l-.5 2.1a1 1 0 0 1-1.93 0l-.5-2.1a1 1 0 0 0-.73-.73l-2.1-.5a1 1 0 0 1 0-1.93l2.1-.5a1 1 0 0 0 .73-.73l.5-2.1A1 1 0 0 1 12 3Zm-6.5 9a.75.75 0 0 1 .73.57l.27 1.1 1.1.27a.75.75 0 0 1 0 1.45l-1.1.27-.27 1.1a.75.75 0 0 1-1.45 0l-.27-1.1-1.1-.27a.75.75 0 0 1 0-1.45l1.1-.27.27-1.1A.75.75 0 0 1 5.5 12Zm12 2a.75.75 0 0 1 .73.57l.27 1.1 1.1.27a.75.75 0 0 1 0 1.45l-1.1.27-.27 1.1a.75.75 0 0 1-1.45 0l-.27-1.1-1.1-.27a.75.75 0 0 1 0-1.45l1.1-.27.27-1.1a.75.75 0 0 1 .72-.57Z"/></svg>
+        </span>
+        <span class="dropzone-text">
           <strong>Drop your cookie file here</strong>
-          <span class="muted small">or click to browse — .txt / .cookies / .json</span>
-        </div>
+          <span class="muted small">or click to browse — .txt · .cookies · .json</span>
+        </span>
+        <span class="dropzone-spinner" aria-hidden="true"></span>
         <input id="file" type="file" accept=".txt,.cookies,.json,text/plain,application/json" hidden>
       </div>
 
       <label for="input">Or paste the export</label>
       <textarea id="input" spellcheck="false" autocomplete="off" autocapitalize="off"
-        placeholder="# Netscape HTTP Cookie File&#10;.gemini.google.com&#9;TRUE&#9;/&#9;TRUE&#9;1893456000&#9;SID&#9;…&#10;&#10;Also accepted: extension JSON exports [{&quot;name&quot;:&quot;SID&quot;,…}] or a raw header: SID=…; HSID=…"></textarea>
+        placeholder="# Netscape HTTP Cookie File&#10;.gemini.google.com&#9;TRUE&#9;/&#9;TRUE&#9;1893456000&#9;SID&#9;…&#10;&#10;Also accepted: extension JSON [{&quot;name&quot;:&quot;SID&quot;,…}] or a raw header: SID=…; HSID=…"></textarea>
       <p class="hints muted small">
-        Supported: Netscape / curl files (incl. <code>#HttpOnly_</code> lines) ·
-        extension JSON arrays · name/value JSON objects · raw <code>Cookie</code> strings
+        Auto-detected: Netscape / curl files (incl. <code>#HttpOnly_</code> lines) ·
+        extension JSON arrays · name/value objects · raw <code>Cookie</code> strings
       </p>
 
       <div class="actions">
-        <button class="btn primary" id="convert" type="button">
-          Convert
-          <kbd>Ctrl</kbd><kbd>↵</kbd>
+        <button class="btn btn-primary" id="convert" type="button">
+          <span>Convert</span>
+          <span class="kbd-hint"><kbd>Ctrl</kbd><kbd>↵</kbd></span>
         </button>
-        <button class="btn" id="sample" type="button">Load sample</button>
-        <button class="btn" id="clear" type="button">Clear</button>
+        <button class="btn btn-ghost" id="sample" type="button">Load sample</button>
+        <button class="btn btn-ghost" id="clear" type="button">Clear</button>
       </div>
 
       <div id="status" class="banner" role="status" aria-live="polite" hidden></div>
     </section>
 
-    <section class="card" id="result" aria-labelledby="result-heading" hidden>
+    <section class="card glass" id="result" aria-labelledby="result-heading" hidden>
       <div class="result-head">
         <h2 id="result-heading">Result</h2>
         <p id="stats" class="muted small"></p>
@@ -75,12 +90,13 @@
 
       <div class="table-tools">
         <h3 class="small-heading">Cookies found</h3>
-        <label class="switch small">
+        <label class="switch">
           <input type="checkbox" id="reveal">
-          <span>Show values</span>
+          <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
+          <span class="switch-label">Show values</span>
         </label>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap glass-soft">
         <table id="cookie-table">
           <thead>
             <tr><th>Name</th><th>Domain</th><th>Expires</th><th>Flags</th><th>Value</th></tr>
@@ -93,7 +109,8 @@
 
       <div class="output-tools">
         <h3 class="small-heading">Generated JSON</h3>
-        <div class="segmented" role="group" aria-label="Output format">
+        <div class="segmented" role="group" aria-label="Output format" data-value="pretty">
+          <span class="seg-thumb" aria-hidden="true"></span>
           <button type="button" id="fmt-pretty" class="active">Pretty</button>
           <button type="button" id="fmt-min">Minified</button>
         </div>
@@ -101,21 +118,30 @@
       <textarea id="output" readonly spellcheck="false" aria-label="Generated JSON output"></textarea>
 
       <div class="actions">
-        <button class="btn primary" id="copy" type="button">Copy JSON</button>
-        <button class="btn" id="download" type="button">Download cookie.json</button>
+        <button class="btn btn-primary" id="copy" type="button">Copy JSON</button>
+        <button class="btn btn-glass" id="download" type="button">Download cookie.json</button>
       </div>
     </section>
   </main>
 
   <footer class="muted small">
     <p>
-      <strong>Privacy:</strong> everything runs in your browser — no uploads, no analytics, no network calls.
-      Treat cookie files like passwords; see <a href="docs/security.md">security guide</a>.
+      <strong>Privacy</strong> — everything runs in your browser: no uploads, no analytics, no network calls.
+      Treat cookie files like passwords · <a href="docs/security.md">security guide</a>
     </p>
-    <p><a href="docs/README.md">Documentation</a> · <a href="docs/troubleshooting.md">Troubleshooting</a> · MIT licensed</p>
+    <p class="footer-links">
+      <a href="docs/README.md">Documentation</a>
+      <span class="dot" aria-hidden="true">·</span>
+      <a href="docs/troubleshooting.md">Troubleshooting</a>
+      <span class="dot" aria-hidden="true">·</span>
+      MIT licensed
+    </p>
   </footer>
 
-  <noscript><div class="banner banner-err">This tool requires JavaScript to run entirely in your browser.</div></noscript>
+  <!-- Layer 6 · floating glass toasts -->
+  <div class="toast-stack" id="toasts" aria-live="polite"></div>
+
+  <noscript><div class="banner banner-err noscript-banner">This tool requires JavaScript — it runs entirely in your browser.</div></noscript>
 
   <script src="assets/converter.js"></script>
   <script src="assets/app.js"></script>

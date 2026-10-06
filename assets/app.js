@@ -31,6 +31,9 @@
   var fmtPretty = document.getElementById('fmt-pretty');
   var fmtMin = document.getElementById('fmt-min');
   var themeToggle = document.getElementById('theme-toggle');
+  var topbar = document.getElementById('topbar');
+  var toastStack = document.getElementById('toasts');
+  var segmented = document.querySelector('.segmented');
 
   var MAX_FILE_BYTES = 5 * 1024 * 1024;
   var MASK = '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
@@ -77,6 +80,45 @@
   function hideBanner() {
     statusEl.hidden = true;
     statusEl.textContent = '';
+  }
+
+  /* ---------------- toasts (Layer 6) ---------------- */
+
+  var TOAST_ICONS = {
+    ok: '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm3.2 5.1-3.7 4a.6.6 0 0 1-.87.02L4.9 8.4l.86-.84 1.3 1.28 3.25-3.52Z"/></svg>',
+    info: '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm-.7 6h1.4v4.4H7.3ZM8 3.4a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg>',
+    err: '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm2.5 3.6.9.9L8.9 8l2.5 2.5-.9.9L8 8.9l-2.5 2.5-.9-.9L7.1 8 4.6 5.5l.9-.9L8 7.1Z"/></svg>',
+  };
+
+  function dismissToast(toast) {
+    if (toast.dataset.leaving) return;
+    toast.dataset.leaving = '1';
+    toast.classList.add('toast-out');
+    setTimeout(function () {
+      toast.remove();
+    }, 280);
+  }
+
+  function showToast(message, kind) {
+    if (!toastStack) return;
+    var type = kind || 'info';
+    var toast = document.createElement('div');
+    toast.className = 'toast glass-float toast-' + type;
+    toast.setAttribute('role', 'status');
+    var icon = document.createElement('span');
+    icon.className = 'toast-icon';
+    icon.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info;
+    var msg = document.createElement('span');
+    msg.textContent = message;
+    toast.appendChild(icon);
+    toast.appendChild(msg);
+    toast.addEventListener('click', function () {
+      dismissToast(toast);
+    });
+    toastStack.appendChild(toast);
+    setTimeout(function () {
+      dismissToast(toast);
+    }, 3400);
   }
 
   /* ---------------- rendering ---------------- */
@@ -217,12 +259,14 @@
       showBanner('err', 'File is too large (' + Math.round(file.size / 1048576) + ' MB). Limit is 5 MB.');
       return;
     }
+    dropzone.classList.add('is-loading');
     file.text().then(function (text) {
       input.value = text;
-      showBanner('info', 'Loaded "' + file.name + '" (' +
-        Math.max(1, Math.round(file.size / 1024)) + ' KB). Click Convert.');
+      showToast('Loaded \u201c' + file.name + '\u201d \u2014 press Convert.', 'ok');
     }).catch(function () {
       showBanner('err', 'Could not read "' + file.name + '". Is it a text file?');
+    }).then(function () {
+      dropzone.classList.remove('is-loading');
     });
   }
 
@@ -230,7 +274,7 @@
     if (!output.value) return;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(output.value).then(function () {
-        showBanner('ok', 'JSON copied to clipboard.');
+        showToast('JSON copied to clipboard.', 'ok');
       }).catch(function () {
         legacyCopy();
       });
@@ -248,8 +292,10 @@
     } catch (e) {
       ok = false;
     }
-    showBanner(ok ? 'ok' : 'warn',
-      ok ? 'JSON copied to clipboard.' : 'Copy failed \u2014 select the JSON and press Ctrl+C.');
+    showToast(
+      ok ? 'JSON copied to clipboard.' : 'Copy failed \u2014 select the JSON and press Ctrl+C.',
+      ok ? 'ok' : 'err'
+    );
   }
 
   function downloadOutput() {
@@ -266,7 +312,7 @@
     setTimeout(function () {
       URL.revokeObjectURL(url);
     }, 1000);
-    showBanner('ok', 'Downloading cookie.json \u2014 keep it private.');
+    showToast('Downloading cookie.json \u2014 keep it private.', 'ok');
   }
 
   /* ---------------- sample data ---------------- */
@@ -285,7 +331,7 @@
       '.gemini.google.com\tTRUE\t/\tTRUE\t' + exp + '\tNID\tSAMPLE-extra-cookie-ignored',
       '',
     ].join('\n');
-    showBanner('info', 'Sample loaded \u2014 click Convert to see how it works.');
+    showToast('Sample loaded \u2014 press Convert to see how it works.', 'info');
   }
 
   /* ---------------- theme ---------------- */
@@ -316,12 +362,14 @@
     state.pretty = true;
     fmtPretty.classList.add('active');
     fmtMin.classList.remove('active');
+    if (segmented) segmented.dataset.value = 'pretty';
     renderOutput();
   });
   fmtMin.addEventListener('click', function () {
     state.pretty = false;
     fmtMin.classList.add('active');
     fmtPretty.classList.remove('active');
+    if (segmented) segmented.dataset.value = 'min';
     renderOutput();
   });
 
@@ -380,4 +428,11 @@
       convert();
     }
   });
+
+  /* Top bar gains material as content scrolls beneath it. */
+  function onScroll() {
+    if (topbar) topbar.classList.toggle('is-scrolled', window.scrollY > 8);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 })();
