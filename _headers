@@ -1,0 +1,23 @@
+# Security & caching headers for Netlify / Cloudflare Pages.
+# The app also ships a strict CSP <meta> tag, so hosts that ignore this file
+# are still safe — these headers just add defence in depth.
+#
+# Docs: https://developers.cloudflare.com/pages/configuration/headers/
+
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), microphone=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  X-Frame-Options: DENY
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/sw.js
+  Cache-Control: no-cache
+
+/site.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
