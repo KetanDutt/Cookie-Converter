@@ -31,6 +31,13 @@ cannot catch with a compiler:
 | File references | broken `src`/`href`, missing service-worker precache entries, missing manifest icons |
 | Docs links | a Markdown link pointing at a deleted file |
 | Formats | the documented formats and the engine's `FORMATS` list disagreeing |
+| Contrast | a token pair dropping below WCAG AA in either theme, or `--muted`/`--faint` collapsing into one another |
+| Motion tokens | any raw `ms`/`s` value outside the `--t-*` tokens |
+| Touch targets | a control under 44 px for coarse pointers |
+| Interaction states | a clickable class losing its `:hover` state, or the focus ring disappearing |
+| Theme colours | `theme-color` / manifest colours drifting from `--bg` |
+| 404 page | orphan classes, inline styles or scripts on the script-less page, or a `.reveal` dependency |
+| Icon sprite | a runtime `UI.icon('…')` name with no matching `<symbol>`, or an unused symbol |
 | Hygiene | `console.log`, `debugger`, `TODO`, oversized assets, a `.gitignore` that stopped blocking cookie files |
 
 ### 2 · `tests/converter.test.js` — engine (61 cases)

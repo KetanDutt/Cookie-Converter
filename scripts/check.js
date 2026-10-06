@@ -215,7 +215,214 @@ if (/\.reveal\b/.test(notFound)) {
 }
 
 /* ------------------------------------------------------------------ *
- * 5 · CSP allows exactly what the app needs
+ * 5 · Measured contrast — the tokens must clear WCAG AA themselves
+ * ------------------------------------------------------------------ */
+
+section('Contrast');
+
+// Parses `#rgb`, `#rrggbb` and `rgb()/rgba()` — the only colour syntaxes the
+// tokens use for text and fills.
+function parseColour(value) {
+  const v = String(value).trim();
+  if (v.startsWith('#')) {
+    let h = v.slice(1);
+    if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+    return { rgb: [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)), a: 1 };
+  }
+  const fn = v.match(/rgba?\(([^)]+)\)/);
+  if (!fn) return null;
+  const parts = fn[1].split(',').map((n) => parseFloat(n));
+  return { rgb: parts.slice(0, 3), a: parts.length > 3 ? parts[3] : 1 };
+}
+
+const composite = (fg, bg) => fg.rgb.map((c, i) => c * fg.a + bg[i] * (1 - fg.a));
+const luminance = (rgb) => {
+  const [r, g, b] = rgb.map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+
+function tokenBlock(source, start, end) {
+  const tokens = {};
+  const slice = start ? source.slice(start, end) : source;
+  for (const m of slice.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) tokens[m[1]] = m[2];
+  return tokens;
+}
+
+const darkTokens = tokenBlock(css, css.indexOf(':root {'), css.indexOf('@media (prefers-color-scheme: light)'));
+const lightTokens = tokenBlock(css, css.indexOf('@light-tokens:start'), css.indexOf('@light-tokens:end'));
+
+const READING_SURFACES = ['--bg', '--bg-deep', '--s-1', '--s-2', '--well'];
+const ALL_SURFACES = [...READING_SURFACES, '--s-3', '--s-4'];
+
+// Every ink that carries text, and the surfaces it is allowed to land on.
+const INK_RULES = [
+  ['--text', ALL_SURFACES, 4.5],
+  ['--text-strong', ALL_SURFACES, 4.5],
+  ['--muted', ALL_SURFACES, 4.5],
+  ['--faint', READING_SURFACES, 4.5],   // micro labels — raised fills are never their home
+];
+// Body ink drawn on the translucent tints the checklist, banners and pills use.
+const TINT_SURFACES = ['--accent-soft', '--ok-soft', '--warn-soft', '--err-soft'];
+const TINT_INKS = ['--text', '--text-strong', '--muted'];
+// Text drawn on a tinted fill of its own colour (badges, banners, pills).
+const TINT_RULES = [
+  ['--ok', '--ok-soft'],
+  ['--warn', '--warn-soft'],
+  ['--err', '--err-soft'],
+  ['--accent', '--accent-soft'],
+  ['--accent-strong', '--accent-soft'],
+];
+
+const contrastFailures = [];
+
+for (const [themeName, tokens] of [['dark', darkTokens], ['light', lightTokens]]) {
+  if (!tokens['--bg']) continue;
+  const pageBg = parseColour(tokens['--bg']).rgb;
+  const surfaceValue = (name) => {
+    const colour = parseColour(tokens[name]);
+    if (!colour) return null;
+    return name === '--bg' || name === '--bg-deep' ? colour.rgb : composite(colour, pageBg);
+  };
+
+  for (const [ink, surfaces, min] of INK_RULES) {
+    const colour = parseColour(tokens[ink]);
+    if (!colour) continue;
+    for (const surface of surfaces) {
+      const bg = surfaceValue(surface);
+      if (!bg) continue;
+      const ratio = contrast(composite(colour, bg), bg);
+      if (ratio < min - 1e-9) {
+        contrastFailures.push(`${themeName}: ${ink} on ${surface} is ${ratio.toFixed(2)}:1 (needs ${min})`);
+      }
+    }
+  }
+
+  for (const ink of TINT_INKS) {
+    const colour = parseColour(tokens[ink]);
+    if (!colour) continue;
+    for (const soft of TINT_SURFACES) {
+      const softColour = parseColour(tokens[soft]);
+      if (!softColour) continue;
+      const fill = composite(softColour, pageBg);
+      const ratio = contrast(composite(colour, fill), fill);
+      if (ratio < 4.5 - 1e-9) {
+        contrastFailures.push(`${themeName}: ${ink} on ${soft} is ${ratio.toFixed(2)}:1 (needs 4.5)`);
+      }
+    }
+  }
+
+  for (const [ink, soft] of TINT_RULES) {
+    const softColour = parseColour(tokens[soft]);
+    const inkColour = parseColour(tokens[ink]);
+    if (!softColour || !inkColour) continue;
+    const fill = composite(softColour, pageBg);
+    const ratio = contrast(composite(inkColour, fill), fill);
+    if (ratio < 4.5 - 1e-9) {
+      contrastFailures.push(`${themeName}: ${ink} on ${soft} is ${ratio.toFixed(2)}:1 (needs 4.5)`);
+    }
+  }
+
+  const accent = parseColour(tokens['--accent']);
+  const accentInk = parseColour(tokens['--accent-ink']);
+  if (accent && accentInk) {
+    const fill = composite(accent, pageBg);
+    const ratio = contrast(composite(accentInk, fill), fill);
+    if (ratio < 4.5 - 1e-9) {
+      contrastFailures.push(`${themeName}: --accent-ink on --accent is ${ratio.toFixed(2)}:1 (needs 4.5)`);
+    }
+  }
+}
+
+// `--faint` and `--muted` sit next to each other in the same labels; if they
+// converge, the hierarchy is gone even though both pass on their own.
+for (const [themeName, tokens] of [['dark', darkTokens], ['light', lightTokens]]) {
+  if (!tokens['--faint'] || !tokens['--muted']) continue;
+  const bg = parseColour(tokens['--bg']).rgb;
+  const faint = contrast(parseColour(tokens['--faint']).rgb, bg);
+  const muted = contrast(parseColour(tokens['--muted']).rgb, bg);
+  if (muted / faint < 1.25) {
+    contrastFailures.push(`${themeName}: --muted and --faint are visually the same (${(muted / faint).toFixed(2)}× apart)`);
+  }
+}
+
+if (contrastFailures.length) fail('contrast: ' + contrastFailures.join('; '));
+else {
+  const pairs = INK_RULES.reduce((n, [, surfaces]) => n + surfaces.length, 0)
+    + TINT_INKS.length * TINT_SURFACES.length + TINT_RULES.length + 1;
+  ok(`${pairs} text/background pair(s) clear WCAG AA in both themes`);
+}
+
+/* ------------------------------------------------------------------ *
+ * 6 · Motion values come from tokens, never from thin air
+ * ------------------------------------------------------------------ */
+
+section('Motion tokens');
+
+const durationViolations = [];
+css.split('\n').forEach((line, index) => {
+  if (/--t-[a-z0-9-]+\s*:/.test(line)) return;              // a token definition
+  if (/^\s*\/?\*/.test(line)) return;                        // comment
+  const withoutTokens = line.replace(/var\([^)]*\)/g, 'TOKEN');
+  for (const m of withoutTokens.matchAll(/(?<![\w-])(\d*\.?\d+)(ms|s)\b/g)) {
+    if (m[1] === '0' || m[0] === '0.01ms') continue;         // zeroing out is not a value
+    durationViolations.push(`line ${index + 1}: ${m[0]} in "${line.trim()}"`);
+  }
+});
+if (durationViolations.length) {
+  fail('raw durations outside the motion tokens: ' + durationViolations.join('; '));
+} else {
+  ok('every duration comes from a --t-* token');
+}
+
+/* ------------------------------------------------------------------ *
+ * 7 · Touch targets: coarse pointers get fingertip-sized controls
+ * ------------------------------------------------------------------ */
+
+section('Touch targets');
+
+const coarseBlock = (css.match(/@media \(pointer: coarse\) \{([\s\S]*?)\n\}/) || [])[1] || '';
+const TOUCH_TARGETS = ['.icon-btn', '.to-top', '.nav-item', '.tab', '.chip-btn', '.bar-btn', '.switch-row'];
+// `.btn` (44) and `.segmented button` (40) are deliberate: a segmented control is
+// a way to pick between two states, not a primary action.
+const TOUCH_FLOOR = 44;
+
+const undersized = [];
+for (const selector of TOUCH_TARGETS) {
+  const escaped = selector.replace('.', '\\.');
+  const rule = coarseBlock.match(new RegExp(escaped + '\\s*\\{([^}]*)\\}'));
+  const size = rule && (rule[1].match(/(?:min-)?height:\s*(\d+)px/) || [])[1];
+  if (!size) undersized.push(`${selector} declares no height`);
+  else if (Number(size) < TOUCH_FLOOR) undersized.push(`${selector} is ${size}px`);
+}
+if (!coarseBlock) undersized.push('the @media (pointer: coarse) block is gone');
+if (undersized.length) fail('touch targets too small: ' + undersized.join('; '));
+else ok(`${TOUCH_TARGETS.length} control(s) declare ≥ ${TOUCH_FLOOR}px targets for coarse pointers`);
+
+/* ------------------------------------------------------------------ *
+ * 8 · Interactive classes carry hover + press feedback
+ * ------------------------------------------------------------------ */
+
+section('Interaction states');
+
+const INTERACTIVE = ['.btn', '.icon-btn', '.chip-btn', '.nav-item', '.tab', '.bar-btn',
+  '.to-top', '.link-btn', '.segmented button', '.check'];
+const missingHover = INTERACTIVE.filter((selector) =>
+  !new RegExp(selector.replace('.', '\\.') + '[^{,]*:hover').test(css));
+if (missingHover.length) fail('no :hover state for ' + missingHover.join(', '));
+else ok(`all ${INTERACTIVE.length} interactive control(s) have a hover state`);
+
+if (!/:focus-visible/.test(css)) fail('the global :focus-visible ring disappeared');
+else ok('focus rings are drawn for every focusable element');
+
+/* ------------------------------------------------------------------ *
+ * 9 · CSP allows exactly what the app needs
  * ------------------------------------------------------------------ */
 
 section('Content-Security-Policy');
@@ -237,7 +444,7 @@ if (inlineHandler) fail('index.html uses an inline event handler (blocked by CSP
 if (!inlineStyle && !inlineHandler) ok('no inline styles or event handlers in the markup');
 
 /* ------------------------------------------------------------------ *
- * 6 · No dynamic innerHTML (XSS surface)
+ * 10 · No dynamic innerHTML (XSS surface)
  * ------------------------------------------------------------------ */
 
 section('Injection safety');
@@ -253,7 +460,7 @@ if (found.length) fail('dynamic code execution found: ' + found.join(', '));
 else ok('no document.write / eval / new Function');
 
 /* ------------------------------------------------------------------ *
- * 7 · The duplicated light palette stays identical
+ * 11 · The duplicated light palette stays identical
  * ------------------------------------------------------------------ */
 
 section('Theme tokens');
@@ -274,7 +481,7 @@ if (lightBlocks.length !== 2) {
 }
 
 /* ------------------------------------------------------------------ *
- * 8 · Everything referenced actually exists
+ * 12 · Everything referenced actually exists
  * ------------------------------------------------------------------ */
 
 section('File references');
@@ -333,7 +540,7 @@ if (missingFormats.length) fail('FORMATS is missing: ' + missingFormats.join(', 
 else ok('engine FORMATS covers all documented input formats');
 
 /* ------------------------------------------------------------------ *
- * 9 · Shipped file set & repository hygiene
+ * 13 · Shipped file set & repository hygiene
  * ------------------------------------------------------------------ */
 
 section('Shipped files');
@@ -374,7 +581,7 @@ if (tracked) {
 }
 
 /* ------------------------------------------------------------------ *
- * 10 · License metadata agrees with LICENSE
+ * 14 · License metadata agrees with LICENSE
  * ------------------------------------------------------------------ */
 
 section('License');

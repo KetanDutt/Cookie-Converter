@@ -40,12 +40,20 @@ matches the OS — no flash of the wrong theme) and once for `[data-theme="light
 | Depth | `--e-0/1/2/3`, `--e-inset` | soft ambient shadows; `--e-inset` is the top light line |
 | Blur | `--blur-sm/md/lg`, `--saturate` | 12 / 22 / 34 px, saturated backdrop |
 | Motion | `--t-instant 120`, `--t-quick 180`, `--t-standard 260`, `--t-slow 340`, `--t-sheet 460` | micro, quick, standard, large, sheet |
+| Loops | `--t-drift-a/b`, `--t-spin`, `--t-sweep`, `--t-pulse` | the only looping motion in the app |
 | Easing | `--ease-standard`, `--ease-entrance`, `--ease-exit`, `--ease-spring` | entrances settle, exits leave quickly, springs only overshoot slightly |
 | Layers | `--z-bg 0`, `--z-veil 10`, `--z-content 20`, `--z-nav 30`, `--z-pop 40`, `--z-dialog 50`, `--z-toast 60` | the stacking order, written down once |
 
 Adding a colour or a duration means adding a token — components never hard-code
-values. `npm run check` fails if the two light blocks disagree, and browser
-chrome colours (`theme-color`, the web manifest) are verified against `--bg`.
+values. `npm run check` enforces the parts that used to rely on discipline:
+
+* the two light blocks must stay byte-identical;
+* browser chrome colours (`theme-color`, the web manifest) must equal `--bg`;
+* **no raw duration** may appear outside a `--t-*` definition (zeroing out in the
+  reduced-motion block excepted);
+* 44 text/background pairs must clear WCAG AA — body ink on each surface step,
+  body ink on each tinted fill, status ink on its own tint, white on accent, and
+  `--muted` must stay visibly apart from `--faint` so the hierarchy survives.
 
 ## 2 · Materials
 
@@ -56,14 +64,15 @@ chrome colours (`theme-color`, the web manifest) are verified against `--bg`.
 | `.glass-lg` | top bar, mobile bar, popovers, dialogs, toasts | 34 px blur + `--s-3` + `--hairline-strong` + `--e-3` |
 | `.glass-tint` | accent-context surfaces (primary buttons, active pills) | accent-soft fill + accent-line border |
 
-`.glass`, `.glass-soft` and `.glass-float` remain as aliases for the three
-strengths so existing markup keeps working. Text and important controls are never
-translucent: they sit on `--well` or solid fills.
+Text and important controls are never translucent: they sit on `--well` or on
+solid fills. `glass-tint` is used where accent context is meaningful — the
+*On-device* chip in the top bar — never as decoration.
 
 Degradation is explicit and always keeps the layout:
 
 * `@supports not (backdrop-filter: …)` → opaque `--solid` fills.
-* `@media (prefers-reduced-transparency: reduce)` → the same opaque fills.
+* `@media (prefers-reduced-transparency: reduce)` → the same opaque fills, plus
+  every well-backed reading surface (inputs, snippets, chips, rows, skeletons).
 * `@media (forced-colors: active)` → system colours, glass removed.
 * `@media (prefers-reduced-motion: reduce)` → animation collapsed to state
   changes, ambient fields frozen, smooth scrolling off.
@@ -153,7 +162,12 @@ legible even with motion disabled.
 * Contrast: the light palette uses darker amber/red than the dark one so both
   themes keep body text and status colours readable.
 * `prefers-reduced-transparency`, `prefers-reduced-motion` and `forced-colors`
-  are all honoured, and printing hides every layer except the payload.
+  are all honoured.
+* Touch targets: every control declares a ≥ 44 px target inside
+  `@media (pointer: coarse)`, verified by `npm run check`.
+* Printing re-declares the palette instead of inheriting it — dark-theme tokens
+  would otherwise print light text on white paper — and hides every layer except
+  the payload itself.
 
 ## 7 · Theming behaviour
 
