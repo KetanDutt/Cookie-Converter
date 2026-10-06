@@ -1,147 +1,123 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gemini Cookie Converter</title>
-<style>
-:root { color-scheme: dark; }
-* { box-sizing:border-box }
-body { margin:0; font-family:system-ui,-apple-system,Segoe UI,sans-serif; background:#0b1020; color:#e8ecf4; }
-main { max-width:900px; margin:40px auto; padding:24px; }
-.card { background:#121a2d; border:1px solid #263451; border-radius:16px; padding:24px; margin-bottom:18px; }
-h1 { margin-top:0 }
-.muted { color:#aeb8cc }
-.warning { padding:14px; border-radius:10px; background:#2a2010; border:1px solid #69521d; }
-label { display:block; margin:18px 0 8px; font-weight:600 }
-textarea { width:100%; min-height:260px; resize:vertical; border-radius:10px; border:1px solid #33425f; background:#0a0f1d; color:#e8ecf4; padding:14px; font:13px ui-monospace,SFMono-Regular,Consolas,monospace; }
-button { border:0; border-radius:10px; padding:11px 16px; font-weight:700; cursor:pointer; margin:8px 8px 0 0; }
-.primary { background:#7aa2ff; color:#07101f }
-.secondary { background:#263451; color:#e8ecf4 }
-.status { margin-top:14px; white-space:pre-wrap; font-family:ui-monospace,monospace; }
-.small { font-size:13px }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gemini Cookie Converter</title>
+  <meta name="description" content="Convert Netscape cookie exports, browser-extension JSON exports, or raw Cookie headers into the JSON structure used by gemini-web2api. 100% client-side — your cookies never leave your browser.">
+  <meta name="color-scheme" content="dark light">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<main>
-  <div class="card">
-    <h1>Gemini Cookie Converter</h1>
-    <p class="muted">Convert a Netscape cookie export into the JSON structure documented by gemini-web2api.</p>
-    <div class="warning">
-      <strong>Privacy:</strong> this page processes the file entirely in your browser.
-      It does not send cookie contents to a server. Do not paste cookies into public issues, chats, or repositories.
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/favicon.svg" alt="" width="26" height="26">
+      <span>Gemini&nbsp;Cookie&nbsp;Converter</span>
     </div>
+    <div class="topbar-actions">
+      <span class="privacy-chip" title="All processing happens in your browser. No network requests are made.">
+        <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M8 1a3 3 0 0 0-3 3v2H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1V4a3 3 0 0 0-3-3Zm-1.5 5V4a1.5 1.5 0 1 1 3 0v2h-3Z"/></svg>
+        100% client-side
+      </span>
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle color theme" title="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-11a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 0Zm0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13ZM2.34 2.34a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 1 1-1.06 1.06L2.34 3.4a.75.75 0 0 1 0-1.06Zm9.2 9.2a.75.75 0 0 1 1.06 0l1.06 1.06a.75.75 0 1 1-1.06 1.06l-1.06-1.06a.75.75 0 0 1 0-1.06ZM0 8a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 8Zm13 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 13 8ZM2.34 13.66a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06L3.4 13.66a.75.75 0 0 1-1.06 0Zm9.2-9.2a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06a.75.75 0 0 1-1.06 0Z"/></svg>
+        <svg class="icon-moon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M14.4 9.6A6.5 6.5 0 0 1 6.4 1.6 6.5 6.5 0 1 0 14.4 9.6Z"/></svg>
+      </button>
+    </div>
+  </header>
 
-    <label for="file">Netscape cookie file</label>
-    <input id="file" type="file" accept=".txt,.cookies,.json,text/plain,application/json">
+  <main>
+    <section class="card" aria-labelledby="input-heading">
+      <h1 id="input-heading">Convert cookies for <span class="grad">gemini-web2api</span></h1>
+      <p class="muted">
+        Turn a Netscape cookie export, a browser-extension JSON export, or a raw
+        <code>Cookie</code> header into the JSON structure documented by
+        <a href="https://github.com/Sophomoresty/gemini-web2api" rel="noopener">gemini-web2api</a>.
+      </p>
 
-    <label for="input">Or paste the exported contents</label>
-    <textarea id="input" placeholder="# Netscape HTTP Cookie File&#10;gemini.google.com ..."></textarea>
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Choose a cookie file or drag one here">
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 .97.76l.5 2.1a1 1 0 0 0 .72.73l2.1.5a1 1 0 0 1 0 1.94l-2.1.5a1 1 0 0 0-.73.72l-.5 2.1a1 1 0 0 1-1.93 0l-.5-2.1a1 1 0 0 0-.73-.73l-2.1-.5a1 1 0 0 1 0-1.93l2.1-.5a1 1 0 0 0 .73-.73l.5-2.1A1 1 0 0 1 12 3Zm-6.5 9a.75.75 0 0 1 .73.57l.27 1.1 1.1.27a.75.75 0 0 1 0 1.45l-1.1.27-.27 1.1a.75.75 0 0 1-1.45 0l-.27-1.1-1.1-.27a.75.75 0 0 1 0-1.45l1.1-.27.27-1.1A.75.75 0 0 1 5.5 12Zm12 2a.75.75 0 0 1 .73.57l.27 1.1 1.1.27a.75.75 0 0 1 0 1.45l-1.1.27-.27 1.1a.75.75 0 0 1-1.45 0l-.27-1.1-1.1-.27a.75.75 0 0 1 0-1.45l1.1-.27.27-1.1a.75.75 0 0 1 .72-.57Z"/></svg>
+        <div>
+          <strong>Drop your cookie file here</strong>
+          <span class="muted small">or click to browse — .txt / .cookies / .json</span>
+        </div>
+        <input id="file" type="file" accept=".txt,.cookies,.json,text/plain,application/json" hidden>
+      </div>
 
-    <button class="primary" id="convert">Convert</button>
-    <button class="secondary" id="clear">Clear</button>
+      <label for="input">Or paste the export</label>
+      <textarea id="input" spellcheck="false" autocomplete="off" autocapitalize="off"
+        placeholder="# Netscape HTTP Cookie File&#10;.gemini.google.com&#9;TRUE&#9;/&#9;TRUE&#9;1893456000&#9;SID&#9;…&#10;&#10;Also accepted: extension JSON exports [{&quot;name&quot;:&quot;SID&quot;,…}] or a raw header: SID=…; HSID=…"></textarea>
+      <p class="hints muted small">
+        Supported: Netscape / curl files (incl. <code>#HttpOnly_</code> lines) ·
+        extension JSON arrays · name/value JSON objects · raw <code>Cookie</code> strings
+      </p>
 
-    <div id="status" class="status"></div>
-  </div>
+      <div class="actions">
+        <button class="btn primary" id="convert" type="button">
+          Convert
+          <kbd>Ctrl</kbd><kbd>↵</kbd>
+        </button>
+        <button class="btn" id="sample" type="button">Load sample</button>
+        <button class="btn" id="clear" type="button">Clear</button>
+      </div>
 
-  <div class="card" id="result" hidden>
-    <h2>Generated JSON</h2>
-    <textarea id="output" readonly></textarea>
-    <button class="primary" id="download">Download cookie.json</button>
-    <button class="secondary" id="copy">Copy JSON</button>
-  </div>
-</main>
+      <div id="status" class="banner" role="status" aria-live="polite" hidden></div>
+    </section>
 
-<script>
-const REQUIRED = ["SID","HSID","SSID","APISID","SAPISID","__Secure-1PSID"];
+    <section class="card" id="result" aria-labelledby="result-heading" hidden>
+      <div class="result-head">
+        <h2 id="result-heading">Result</h2>
+        <p id="stats" class="muted small"></p>
+      </div>
 
-const fileInput = document.getElementById("file");
-const input = document.getElementById("input");
-const status = document.getElementById("status");
-const output = document.getElementById("output");
-const result = document.getElementById("result");
+      <div class="table-tools">
+        <h3 class="small-heading">Cookies found</h3>
+        <label class="switch small">
+          <input type="checkbox" id="reveal">
+          <span>Show values</span>
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table id="cookie-table">
+          <thead>
+            <tr><th>Name</th><th>Domain</th><th>Expires</th><th>Flags</th><th>Value</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
-function parseNetscape(text) {
-  const cookies = {};
-  const lines = text.split(/\r?\n/);
+      <ul id="warnings" class="warnings" hidden></ul>
 
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (!line || line.startsWith("#")) continue;
+      <div class="output-tools">
+        <h3 class="small-heading">Generated JSON</h3>
+        <div class="segmented" role="group" aria-label="Output format">
+          <button type="button" id="fmt-pretty" class="active">Pretty</button>
+          <button type="button" id="fmt-min">Minified</button>
+        </div>
+      </div>
+      <textarea id="output" readonly spellcheck="false" aria-label="Generated JSON output"></textarea>
 
-    // Netscape format is tab-separated. A few exporters use whitespace,
-    // so fall back to splitting on runs of whitespace.
-    let p = line.split("\t");
-    if (p.length < 7) p = line.split(/\s+/);
-    if (p.length < 7) continue;
+      <div class="actions">
+        <button class="btn primary" id="copy" type="button">Copy JSON</button>
+        <button class="btn" id="download" type="button">Download cookie.json</button>
+      </div>
+    </section>
+  </main>
 
-    // domain, includeSubdomains, path, secure, expiry, name, value
-    const name = p[5];
-    const value = p.slice(6).join("\t");
+  <footer class="muted small">
+    <p>
+      <strong>Privacy:</strong> everything runs in your browser — no uploads, no analytics, no network calls.
+      Treat cookie files like passwords; see <a href="docs/security.md">security guide</a>.
+    </p>
+    <p><a href="docs/README.md">Documentation</a> · <a href="docs/troubleshooting.md">Troubleshooting</a> · MIT licensed</p>
+  </footer>
 
-    if (REQUIRED.includes(name)) cookies[name] = value;
-  }
-  return cookies;
-}
+  <noscript><div class="banner banner-err">This tool requires JavaScript to run entirely in your browser.</div></noscript>
 
-function makeJson(cookies) {
-  const missing = REQUIRED.filter(k => !(k in cookies));
-  if (missing.length) {
-    throw new Error("Missing required cookies: " + missing.join(", "));
-  }
-
-  const cookie = REQUIRED
-    .map(k => `${k}=${cookies[k]}`)
-    .join("; ");
-
-  return {
-    cookie,
-    sapisid: cookies["SAPISID"]
-  };
-}
-
-function convert() {
-  status.textContent = "";
-  result.hidden = true;
-
-  try {
-    const cookies = parseNetscape(input.value);
-    const obj = makeJson(cookies);
-    output.value = JSON.stringify(obj, null, 2);
-    result.hidden = false;
-    status.textContent = "Success. Found all required cookies.";
-  } catch (e) {
-    status.textContent = "Error: " + e.message;
-  }
-}
-
-fileInput.addEventListener("change", async () => {
-  const f = fileInput.files[0];
-  if (!f) return;
-  input.value = await f.text();
-  status.textContent = "Loaded " + f.name + ". Click Convert.";
-});
-
-document.getElementById("convert").onclick = convert;
-document.getElementById("clear").onclick = () => {
-  input.value = "";
-  output.value = "";
-  status.textContent = "";
-  result.hidden = true;
-  fileInput.value = "";
-};
-document.getElementById("copy").onclick = async () => {
-  await navigator.clipboard.writeText(output.value);
-  status.textContent = "JSON copied to clipboard.";
-};
-document.getElementById("download").onclick = () => {
-  const blob = new Blob([output.value], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "cookie.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
-</script>
+  <script src="assets/converter.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,15 @@
+# --- security: never commit real cookie exports or generated credentials ---
+*.cookies
+cookie.txt
+cookie.json
+cookies.txt
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# --- tooling ---
+node_modules/
+npm-debug.log*
