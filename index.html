@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gemini Cookie Converter</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing:border-box }
+body { margin:0; font-family:system-ui,-apple-system,Segoe UI,sans-serif; background:#0b1020; color:#e8ecf4; }
+main { max-width:900px; margin:40px auto; padding:24px; }
+.card { background:#121a2d; border:1px solid #263451; border-radius:16px; padding:24px; margin-bottom:18px; }
+h1 { margin-top:0 }
+.muted { color:#aeb8cc }
+.warning { padding:14px; border-radius:10px; background:#2a2010; border:1px solid #69521d; }
+label { display:block; margin:18px 0 8px; font-weight:600 }
+textarea { width:100%; min-height:260px; resize:vertical; border-radius:10px; border:1px solid #33425f; background:#0a0f1d; color:#e8ecf4; padding:14px; font:13px ui-monospace,SFMono-Regular,Consolas,monospace; }
+button { border:0; border-radius:10px; padding:11px 16px; font-weight:700; cursor:pointer; margin:8px 8px 0 0; }
+.primary { background:#7aa2ff; color:#07101f }
+.secondary { background:#263451; color:#e8ecf4 }
+.status { margin-top:14px; white-space:pre-wrap; font-family:ui-monospace,monospace; }
+.small { font-size:13px }
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>Gemini Cookie Converter</h1>
+    <p class="muted">Convert a Netscape cookie export into the JSON structure documented by gemini-web2api.</p>
+    <div class="warning">
+      <strong>Privacy:</strong> this page processes the file entirely in your browser.
+      It does not send cookie contents to a server. Do not paste cookies into public issues, chats, or repositories.
+    </div>
+
+    <label for="file">Netscape cookie file</label>
+    <input id="file" type="file" accept=".txt,.cookies,.json,text/plain,application/json">
+
+    <label for="input">Or paste the exported contents</label>
+    <textarea id="input" placeholder="# Netscape HTTP Cookie File&#10;gemini.google.com ..."></textarea>
+
+    <button class="primary" id="convert">Convert</button>
+    <button class="secondary" id="clear">Clear</button>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="card" id="result" hidden>
+    <h2>Generated JSON</h2>
+    <textarea id="output" readonly></textarea>
+    <button class="primary" id="download">Download cookie.json</button>
+    <button class="secondary" id="copy">Copy JSON</button>
+  </div>
+</main>
+
+<script>
+const REQUIRED = ["SID","HSID","SSID","APISID","SAPISID","__Secure-1PSID"];
+
+const fileInput = document.getElementById("file");
+const input = document.getElementById("input");
+const status = document.getElementById("status");
+const output = document.getElementById("output");
+const result = document.getElementById("result");
+
+function parseNetscape(text) {
+  const cookies = {};
+  const lines = text.split(/\r?\n/);
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    // Netscape format is tab-separated. A few exporters use whitespace,
+    // so fall back to splitting on runs of whitespace.
+    let p = line.split("\t");
+    if (p.length < 7) p = line.split(/\s+/);
+    if (p.length < 7) continue;
+
+    // domain, includeSubdomains, path, secure, expiry, name, value
+    const name = p[5];
+    const value = p.slice(6).join("\t");
+
+    if (REQUIRED.includes(name)) cookies[name] = value;
+  }
+  return cookies;
+}
+
+function makeJson(cookies) {
+  const missing = REQUIRED.filter(k => !(k in cookies));
+  if (missing.length) {
+    throw new Error("Missing required cookies: " + missing.join(", "));
+  }
+
+  const cookie = REQUIRED
+    .map(k => `${k}=${cookies[k]}`)
+    .join("; ");
+
+  return {
+    cookie,
+    sapisid: cookies["SAPISID"]
+  };
+}
+
+function convert() {
+  status.textContent = "";
+  result.hidden = true;
+
+  try {
+    const cookies = parseNetscape(input.value);
+    const obj = makeJson(cookies);
+    output.value = JSON.stringify(obj, null, 2);
+    result.hidden = false;
+    status.textContent = "Success. Found all required cookies.";
+  } catch (e) {
+    status.textContent = "Error: " + e.message;
+  }
+}
+
+fileInput.addEventListener("change", async () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  input.value = await f.text();
+  status.textContent = "Loaded " + f.name + ". Click Convert.";
+});
+
+document.getElementById("convert").onclick = convert;
+document.getElementById("clear").onclick = () => {
+  input.value = "";
+  output.value = "";
+  status.textContent = "";
+  result.hidden = true;
+  fileInput.value = "";
+};
+document.getElementById("copy").onclick = async () => {
+  await navigator.clipboard.writeText(output.value);
+  status.textContent = "JSON copied to clipboard.";
+};
+document.getElementById("download").onclick = () => {
+  const blob = new Blob([output.value], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cookie.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+</script>
+</body>
+</html>
