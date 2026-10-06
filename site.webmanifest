@@ -1,0 +1,26 @@
+{
+  "name": "Gemini Cookie Converter",
+  "short_name": "Cookie Converter",
+  "description": "Convert Netscape cookie exports, extension JSON, Cookie/Set-Cookie headers or a Copy-as-cURL command into the JSON payload used by gemini-web2api. Everything runs in your browser.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0c11",
+  "theme_color": "#0a0c11",
+  "categories": ["developer", "utilities", "security"],
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

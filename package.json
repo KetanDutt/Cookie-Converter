@@ -1,21 +1,49 @@
 {
   "name": "cookie-converter",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "private": true,
-  "description": "Static, client-side converter for Netscape cookie exports used by gemini-web2api.",
-  "scripts": {
-    "test": "node --test tests/converter.test.js",
-    "serve": "python3 -m http.server 8080 --bind 0.0.0.0"
+  "type": "commonjs",
+  "description": "Static, client-side converter for Netscape/JSON/header/cURL cookie exports used by gemini-web2api.",
+  "keywords": [
+    "cookies",
+    "netscape",
+    "cookie-editor",
+    "curl",
+    "set-cookie",
+    "gemini",
+    "gemini-web2api",
+    "converter",
+    "static",
+    "zero-dependencies"
+  ],
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/KetanDutt/Cookie-Converter#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KetanDutt/Cookie-Converter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KetanDutt/Cookie-Converter/issues"
   },
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT",
-  "keywords": [
-    "cookies",
-    "netscape",
-    "gemini",
-    "converter",
-    "static"
+  "scripts": {
+    "test": "node --test tests/converter.test.js tests/app.test.js",
+    "test:watch": "node --test --watch tests/converter.test.js tests/app.test.js",
+    "check": "node scripts/check.js",
+    "verify": "npm run check && npm test",
+    "serve": "python3 -m http.server 8080 --bind 0.0.0.0",
+    "serve:node": "node scripts/serve.js"
+  },
+  "files": [
+    "index.html",
+    "404.html",
+    "sw.js",
+    "site.webmanifest",
+    "assets/",
+    "docs/",
+    "LICENSE",
+    "README.md"
   ]
 }

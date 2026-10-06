@@ -1,15 +1,29 @@
-# --- security: never commit real cookie exports or generated credentials ---
+# --- security: never commit real cookie exports or generated payloads ---
 *.cookies
 cookie.txt
 cookie.json
 cookies.txt
+cookies.json
+export*.json
+storage-state*.json
 
 # --- OS / editor cruft ---
 .DS_Store
 Thumbs.db
 *.swp
 *~
+.idea/
+.vscode/*
+!.vscode/extensions.json
 
 # --- tooling ---
 node_modules/
 npm-debug.log*
+yarn-error.log*
+coverage/
+*.log
+
+# --- local playgrounds (may contain real exports: never commit) ---
+playground/
+scratch/
+tmp/
