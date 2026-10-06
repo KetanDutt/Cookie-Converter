@@ -18,9 +18,9 @@ short and strict — keeping them is what lets it stay dependency-free.
    non-literal `innerHTML` fails the checks.
 5. **Keep the CSP strict.** `npm run check` fails if a directive disappears or
    `'unsafe-inline'`/`'unsafe-eval'` appears.
-6. **Never commit cookie exports.** `.gitignore` blocks the usual names and CI
-   fails if one gets through. Use the sample loader for test data, or
-   hand-craft values like `sid-value`.
+6. **Never commit cookie exports.** `.gitignore` blocks the usual names and
+   `npm run check` fails if one gets through. Use the sample loader for test
+   data, or hand-craft values like `sid-value`.
 
 ## Getting started
 
@@ -28,11 +28,11 @@ short and strict — keeping them is what lets it stay dependency-free.
 git clone https://github.com/KetanDutt/Cookie-Converter
 cd Cookie-Converter
 npm run serve        # http://localhost:8080 (python3 or `npm run serve:node`)
-npm run verify       # checks + 90 tests, ~1 s
+npm run verify       # checks + 92 tests, ~1 s
 ```
 
-There is nothing to install, which also means there is no `npm install` step in
-CI beyond the Node runtime.
+There is nothing to install — no package manager step exists at all, here or in
+any pipeline.
 
 ## Making a change
 
@@ -69,7 +69,7 @@ CI beyond the Node runtime.
 
 A pull request is ready when:
 
-- [ ] `npm run verify` is green and CI passes on Node 18, 20 and 22.
+- [ ] `npm run verify` is green (Node 18, 20 and 22 are all supported).
 - [ ] New behaviour is tested; fixed bugs have a regression test.
 - [ ] Docs are updated (README feature list, relevant `docs/*.md`, changelog).
 - [ ] No new dependency, no build step, no network request, no dynamic markup.
@@ -95,4 +95,7 @@ security issues use a private advisory instead — see
 
 ## License
 
-Contributions are accepted under the [MIT license](../LICENSE).
+Contributions are governed by the repository's [LICENSE](../LICENSE) (All Rights
+Reserved). Open an issue before starting significant work so the terms can be
+confirmed; submitting a pull request confirms you have the right to contribute
+the code under those terms.

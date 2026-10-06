@@ -48,7 +48,7 @@ makes the engine a general cookie-jar normaliser. See [api.md](api.md).
 
 **Why is there no TypeScript / framework / bundler?**
 Auditability. The whole app is four readable files, the tests run with `node`
-alone, and deployment is a `git push`. `npm run check` and 90 tests take over the
+alone, and deployment is a `git push`. `npm run check` and 92 tests take over the
 job a compiler would do here.
 
 **Does it work offline / can I install it?**
@@ -67,8 +67,10 @@ attributes or the console — there is a test asserting exactly that.
 
 **Can I trust a hosted copy?**
 You can *audit* it: read four files, or run `npm run check` on the same commit.
-For maximum trust, host your own copy
-([deployment.md](deployment.md)) or open it from `file://`.
+For maximum privacy, run the page with the network disabled, or open
+`index.html` from `file://` — nothing needs a server. Re-hosting or
+redistributing a copy requires the author's permission; see
+[LICENSE](../LICENSE) and [deployment.md](deployment.md).
 
 **Something is wrong and the error message is not listed here.**
 Run `npm run verify` locally first — it catches the "my copy is broken" class of

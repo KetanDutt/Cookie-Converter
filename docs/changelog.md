@@ -51,12 +51,11 @@ build step, no network access.
   29 integration tests cover the wiring, rendering, toasts, timers and theme.
 * **`scripts/check.js`** — consistency guard rails: version lockstep, DOM wiring,
   CSP contents, injection safety, theme-token duplication, file and Markdown
-  references, leftover debris, asset sizes.
+  references, the shipped file set, tracked cookie exports, license metadata,
+  leftover debris, asset sizes.
 * **New documentation** — this file's siblings `api.md`, `testing.md`,
   `design.md`, `faq.md`, `contributing.md`, plus a rewritten README and a
   documentation index.
-* New GitHub Actions workflow: checks + tests on Node 18/20/22, plus an artifact
-  sanity job that fails if a cookie export is ever committed.
 
 ### Fixed
 
@@ -101,6 +100,15 @@ build step, no network access.
   "read it when you want to…" column.
 * `package.json` gained `check`, `verify`, `test:watch`, `serve:node`, repository
   metadata and `engines`.
+* **Licence aligned with the repository:** `package.json` (`UNLICENSED`), the page
+  footer and the documentation now point at [LICENSE](../LICENSE) (All Rights
+  Reserved) instead of claiming MIT. Deployment, security and FAQ copy was updated
+  so it no longer suggests re-hosting or redistributing the software without
+  permission.
+* **No CI service.** The GitHub Actions workflow was removed at the maintainer's
+  request; its two guarantees (the shipped file set, and "no cookie export is
+  ever committed") moved into `npm run check`, so `npm run verify` stays the
+  single gate. Nothing about the shipped app changed.
 
 ### Security
 

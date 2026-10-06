@@ -182,7 +182,7 @@ Because the value of this tool is *auditability*: four files you can read in a
 sitting, no install step, and a deployment that is literally `git push`. A build
 pipeline would add a supply chain without adding correctness. The trade-off is
 that the project relies on its own checks (`npm run verify`) instead of a
-compiler — which is precisely what `scripts/check.js` and the 90 tests are for.
+compiler — which is precisely what `scripts/check.js` and the 92 tests are for.
 
 ## Extension points
 

@@ -3,6 +3,11 @@
 The app is 100% static — no build step, no dependencies, no server logic, no
 environment variables. Whatever a file host can serve, it can host.
 
+> **Licence notice.** This repository is *All Rights Reserved* — see
+> [LICENSE](../LICENSE). These instructions are for the copyright holder, or for
+> anyone with written permission to host a copy; the licence grants no right to
+> publish or distribute this software.
+
 ```
 .nojekyll    index.html   404.html   sw.js   site.webmanifest   _headers
 assets/{converter.js, app.js, style.css, favicon.svg, icon-maskable.svg}
@@ -21,9 +26,9 @@ Nothing needs to be compiled or copied: the repository *is* the site.
 4. Open `https://<user>.github.io/<repo>/`.
 
 `404.html` is picked up automatically. Everything works under a sub-path
-because all URLs in the project are relative. (If you prefer Actions-based
-deploys, `.github/workflows/ci.yml` already validates the exact file set the host
-needs.)
+because all URLs in the project are relative. Before publishing, run
+`npm run check` — it verifies the exact file set a host needs (and that no cookie
+export slipped into the tree).
 
 The repository ships a `.nojekyll` file, so GitHub Pages serves the tree
 **verbatim**: no Jekyll build, nothing silently dropped (Jekyll ignores
@@ -91,7 +96,7 @@ converter.example.com {
 
 ```bash
 aws s3 sync . s3://my-bucket --exclude ".git/*" --exclude "node_modules/*" \
-  --exclude ".github/*" --exclude "tests/*" --exclude "scripts/*"
+  --exclude "tests/*" --exclude "scripts/*"
 ```
 
 Enable static website hosting and set `index.html` / `404.html` as the document

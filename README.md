@@ -130,10 +130,14 @@ has no runtime or development dependencies, by design.
 
 ```bash
 npm run check     # versions, DOM wiring, CSP, docs links, theme tokens, hygiene
-npm test          # 90 tests: engine + UI integration
-npm run verify    # both, in the order CI runs them
+npm test          # 92 tests: engine + UI integration
+npm run verify    # both, in one go — the project's only gate
 npm run serve     # static preview on :8080 (Python or `serve:node`)
 ```
+
+There is no CI service and no pipeline to wait for: `npm run verify` is the
+gate, and it checks everything the project relies on (including the shipped file
+set and that no cookie export is ever tracked by git).
 
 * [docs/architecture.md](docs/architecture.md) — how the engine and UI fit together
 * [docs/api.md](docs/api.md) — the programmatic engine API
@@ -166,7 +170,15 @@ templates, are in [docs/deployment.md](docs/deployment.md).
 
 ## License
 
-[MIT](LICENSE)
+[All rights reserved](LICENSE). This repository and its contents are provided for
+viewing and evaluation purposes only: no permission is granted to use, copy,
+modify, distribute or create derivative works from it, commercial use is
+prohibited without a separate written licence, and it may not be used to train
+machine-learning models. Licensing questions and commercial permissions:
+[LICENSE](LICENSE) lists the contact address.
+
+You can always run the official deployment without installing anything — the
+app itself runs entirely in your browser.
 
 ---
 

@@ -245,7 +245,71 @@ if (missingFormats.length) fail('FORMATS is missing: ' + missingFormats.join(', 
 else ok('engine FORMATS covers all documented input formats');
 
 /* ------------------------------------------------------------------ *
- * 7 · Hygiene
+ * 7 · Shipped file set & repository hygiene
+ * ------------------------------------------------------------------ */
+
+section('Shipped files');
+
+// Exactly what a static host must receive — this list used to live in CI.
+const SHIPPED = [
+  'index.html', '404.html', 'sw.js', 'site.webmanifest', '_headers', '.nojekyll',
+  'assets/app.js', 'assets/converter.js', 'assets/style.css',
+  'assets/favicon.svg', 'assets/icon-maskable.svg',
+  'LICENSE', 'README.md', 'docs/README.md',
+];
+const absentShipped = SHIPPED.filter((file) => !exists(file));
+if (absentShipped.length) fail('missing from the shipped set: ' + absentShipped.join(', '));
+else ok(`all ${SHIPPED.length} files a host needs are present`);
+
+// Guard rail that used to live in CI: never let a real export reach the repo.
+const EXPORT_NAME_RE = /^(cookie|cookies|cookie\.json|cookies\.json|export[^/]*\.json|storage-state[^/]*\.json)$/i;
+let tracked = null;
+try {
+  tracked = require('node:child_process')
+    .execFileSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8' })
+    .split('\n')
+    .filter(Boolean);
+} catch (e) {
+  warn('git is unavailable — skipped the committed-cookie-export check');
+}
+if (tracked) {
+  const leaks = tracked.filter((file) => {
+    const base = file.split('/').pop();
+    return EXPORT_NAME_RE.test(base) || /\.cookies$/i.test(base);
+  });
+  if (leaks.length) {
+    fail('cookie exports look committed: ' + leaks.join(', ') +
+      ' — remove them, rotate those cookies, and check the history');
+  } else {
+    ok('no cookie exports tracked by git');
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 8 · License metadata agrees with LICENSE
+ * ------------------------------------------------------------------ */
+
+section('License');
+
+const licenseText = read('LICENSE');
+const declared = pkg.license;
+const reserved = /all rights reserved/i.test(licenseText);
+if (reserved && declared !== 'UNLICENSED' && declared !== 'SEE LICENSE IN LICENSE') {
+  fail(`LICENSE says "All Rights Reserved" but package.json declares "${declared}"`);
+} else if (!reserved && declared === 'UNLICENSED') {
+  fail('package.json says UNLICENSED but LICENSE does not say "All Rights Reserved"');
+} else {
+  ok(`package.json (${declared}) matches LICENSE`);
+}
+if (reserved) {
+  const claimsMit = ['README.md', 'index.html', 'CONTRIBUTING.md', 'docs/contributing.md']
+    .filter((file) => /MIT licen[sc]ed|\[MIT\]\(/i.test(read(file)));
+  if (claimsMit.length) fail('these files still claim an MIT license: ' + claimsMit.join(', '));
+  else ok('no stray MIT claims in the docs or the footer');
+}
+
+/* ------------------------------------------------------------------ *
+ * 9 · Hygiene
  * ------------------------------------------------------------------ */
 
 section('Hygiene');

@@ -1,9 +1,9 @@
 # Testing
 
 ```bash
-npm run verify     # what CI runs: consistency checks, then the test suite
+npm run verify     # the whole gate: consistency checks, then the test suite
 npm run check      # scripts/check.js only
-npm test           # the 90 tests
+npm test           # the 92 tests
 npm run test:watch # re-run on change
 ```
 

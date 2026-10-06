@@ -78,12 +78,15 @@ Google/Gemini session until they expire.
    then delete the raw export *and* `cookie.json` from your Downloads folder.
 3. **Never share them** — not in issues, screenshots, chat logs, or commits.
    This repository's `.gitignore` blocks common cookie filenames for exactly
-   this reason, and CI fails if a `cookies.txt`-style file is ever committed.
+   this reason, and `npm run check` fails if a `cookies.txt`-style file is ever
+   committed.
 4. **Never paste them into an online service.** If a website asks you to upload
    your cookie file, treat it as hostile by default — including deployments of
    this tool that you have not read.
-5. **Prefer local tools.** Host it yourself if you want maximum trust: it is a
-   handful of static files (see [deployment](deployment.md)).
+5. **Prefer local tools.** Run the page with the network disabled, or open
+   `index.html` from `file://` — nothing needs a server. Re-hosting or
+   redistributing a copy needs the author's permission
+   (see [LICENSE](../LICENSE) and [deployment](deployment.md)).
 6. **Rotate on suspicion.** Changing your Google password, or using “Sign out of
    all devices”, invalidates leaked cookies.
 7. **Beware of browser extensions.** *Any* extension you install can read every

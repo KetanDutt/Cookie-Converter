@@ -54,4 +54,4 @@ options → Include extra Google cookies* to append them when present.
   if a doc and the code disagree, that is a bug: please open an issue.
 * Code blocks are runnable as written.
 * The suite is the source of truth for parsing rules:
-  `npm test` (90 tests) and `npm run check` (wiring, CSP, docs links).
+  `npm test` (92 tests) and `npm run check` (wiring, CSP, docs links).
