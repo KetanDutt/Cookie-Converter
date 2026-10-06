@@ -71,6 +71,8 @@
   --solid-deep: #0e1117;
 
   /* —— shape —— */
+  --radius-tip: 2px;          /* popover arrow tips and hairline corners */
+  --radius-2xs: 6px;          /* badges, flags, skeleton lines */
   --radius-xs: 8px;
   --radius-sm: 12px;
   --radius-md: 16px;
@@ -79,7 +81,8 @@
   --radius-2xl: 34px;
   --radius-pill: 999px;
 
-  /* —— spacing (4px rhythm) —— */
+  /* —— spacing: a 4px rhythm with 2px half-steps for dense chrome —— */
+  --sp-hair: 2px; --sp-tight: 6px; --sp-snug: 10px;
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
   --sp-6: 28px; --sp-7: 36px; --sp-8: 48px; --sp-9: 64px; --sp-10: 88px;
 
@@ -102,6 +105,16 @@
   --e-2: 0 2px 6px rgba(0, 0, 0, 0.26), 0 14px 38px rgba(0, 0, 0, 0.28);
   --e-3: 0 4px 12px rgba(0, 0, 0, 0.30), 0 30px 72px rgba(0, 0, 0, 0.40);
   --e-inset: inset 0 1px 0 var(--edge);
+  --e-sunken: inset 0 1px 2px rgba(0, 0, 0, 0.10);   /* recessed wells and tracks */
+  --e-track: inset 0 1px 3px rgba(0, 0, 0, 0.14);
+  --e-knob: 0 1px 3px rgba(0, 0, 0, 0.30);
+  --e-press: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(0, 0, 0, 0.20);
+  --e-halo: 0 0 0 2px var(--bg);                      /* separates a floating dot from what it sits on */
+  --e-glow: 0 2px 10px color-mix(in srgb, var(--accent) 26%, transparent);
+  --e-glow-lg: 0 6px 18px color-mix(in srgb, var(--accent) 24%, transparent);
+  --e-primary: inset 0 1px 0 rgba(255, 255, 255, 0.34),
+               0 1px 2px rgba(0, 0, 0, 0.18),
+               var(--e-glow-lg);
 
   /* —— blur strengths —— */
   --blur-sm: 12px;
@@ -471,7 +484,7 @@ code {
   background: var(--s-1);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-xs);
-  padding: 1px 5px;
+  padding: var(--sp-hair) var(--sp-tight);
   color: var(--text);
 }
 
@@ -479,8 +492,8 @@ kbd {
   background: var(--s-2);
   border: 1px solid var(--hairline-strong);
   border-bottom-width: 2px;
-  border-radius: 6px;
-  padding: 0 5px;
+  border-radius: var(--radius-2xs);
+  padding: 0 var(--sp-tight);
   font-size: 0.8em;
   color: var(--text);
 }
@@ -496,7 +509,7 @@ strong { font-weight: 600; color: var(--text-strong); }
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-tight);
   margin: 0 0 var(--sp-3);
   font-size: var(--fs-micro);
   font-weight: 600;
@@ -532,6 +545,13 @@ strong { font-weight: 600; color: var(--text-strong); }
 }
 .section-head-lg { display: block; margin: 0 0 var(--sp-5); }
 .section-head-lg p { margin-top: var(--sp-2); }
+
+/* The app hides whole regions with the `hidden` attribute. An author `display`
+   declaration outranks the user agent's `[hidden] { display: none }` — so every
+   component below that sets its own display value (grid, flex, inline-flex …)
+   would silently stay visible. This one rule keeps the attribute authoritative
+   for all fourteen regions the app hides. */
+[hidden] { display: none !important; }
 
 .sr-only {
   position: absolute;
@@ -622,13 +642,13 @@ main.workspace {
   display: flex;
   align-items: center;
   gap: var(--sp-4);
-  padding: 7px 8px 7px 14px;
+  padding: var(--sp-tight) var(--sp-2) var(--sp-tight) var(--sp-3);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--sp-snug);
   color: var(--text-strong);
   flex: none;
 }
@@ -638,10 +658,10 @@ main.workspace {
   display: grid;
   place-items: center;
   width: 30px; height: 30px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   background:
     linear-gradient(150deg, color-mix(in srgb, var(--accent) 90%, white 10%), color-mix(in srgb, var(--violet) 80%, var(--accent)));
-  box-shadow: var(--e-inset), 0 2px 10px color-mix(in srgb, var(--accent) 26%, transparent);
+  box-shadow: var(--e-inset), var(--e-glow);
   position: relative;
 }
 .brand-mark::after {
@@ -663,9 +683,9 @@ main.workspace {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--sp-hair);
   margin: 0 auto;
-  padding: 3px;
+  padding: var(--sp-hair);
   border-radius: var(--radius-pill);
   background: var(--s-1);
   border: 1px solid var(--hairline);
@@ -697,7 +717,7 @@ main.workspace {
   font-weight: 560;
   letter-spacing: -0.004em;
   color: var(--muted);
-  padding: 6px 14px;
+  padding: var(--sp-tight) var(--sp-3);
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: color var(--t-quick) var(--ease-standard);
@@ -710,12 +730,12 @@ main.workspace {
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-tight);
   font-size: var(--fs-micro);
   font-weight: 560;
   color: var(--text);
   border-radius: var(--radius-pill);
-  padding: 5px 11px;
+  padding: var(--sp-tight) var(--sp-3);
   white-space: nowrap;
 }
 
@@ -747,7 +767,7 @@ main.workspace {
   top: calc(100% + 9px);
   left: 50%;
   transform: translate(-50%, -3px) scale(0.96);
-  padding: 5px 9px;
+  padding: var(--sp-tight) var(--sp-2);
   border-radius: var(--radius-xs);
   background: var(--solid);
   border: 1px solid var(--hairline-strong);
@@ -770,7 +790,7 @@ main.workspace {
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 2px var(--bg);
+  box-shadow: var(--e-halo);
 }
 
 /* icon crossfade (sun ⇄ moon) */
@@ -790,7 +810,7 @@ main.workspace {
   align-items: center;
   justify-content: center;
   gap: var(--sp-2);
-  padding: 11px 18px;
+  padding: var(--sp-3) var(--sp-4);
   border-radius: var(--radius-pill);
   border: 1px solid transparent;
   font: inherit;
@@ -840,13 +860,10 @@ main.workspace {
     color-mix(in srgb, var(--accent) 88%, white 12%),
     color-mix(in srgb, var(--accent) 92%, black 8%));
   border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    0 1px 2px rgba(0, 0, 0, 0.18),
-    0 6px 18px color-mix(in srgb, var(--accent) 24%, transparent);
+  box-shadow: var(--e-primary);
 }
 .btn-primary:hover { filter: brightness(1.05); }
-.btn-primary:active { filter: brightness(0.97); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 1px 2px rgba(0, 0, 0, 0.2); }
+.btn-primary:active { filter: brightness(0.97); box-shadow: var(--e-press); }
 [data-theme="dark"] .btn-primary { color: #080e1a; }
 
 .btn-glass {
@@ -908,8 +925,8 @@ main.workspace {
 #result.is-stale { opacity: 0.6; border-style: dashed; }
 #result.is-stale #result-heading::after {
   content: "stale";
-  margin-left: 10px;
-  padding: 2px 8px;
+  margin-left: var(--sp-snug);
+  padding: var(--sp-hair) var(--sp-2);
   border-radius: var(--radius-pill);
   background: var(--warn-soft);
   border: 1px solid var(--warn-line);
@@ -931,14 +948,14 @@ label { display: block; font-size: 13.5px; font-weight: 560; color: var(--text);
 .detect {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-tight);
   font-size: var(--fs-micro);
   font-weight: 560;
   color: var(--muted);
   background: var(--s-1);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-pill);
-  padding: 3px 10px;
+  padding: var(--sp-hair) var(--sp-snug);
   transition: color var(--t-standard) var(--ease-standard), border-color var(--t-standard) var(--ease-standard), background-color var(--t-standard) var(--ease-standard);
   white-space: nowrap;
 }
@@ -967,7 +984,7 @@ input[type="search"] {
   font-family: var(--font-mono);
   font-size: 12.5px;
   line-height: 1.65;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--e-sunken);
   transition:
     border-color var(--t-standard) var(--ease-standard),
     background-color var(--t-standard) var(--ease-standard),
@@ -984,7 +1001,7 @@ input[type="search"]:focus {
   outline: none;
   border-color: var(--accent);
   background: color-mix(in srgb, var(--well) 88%, var(--accent) 12%);
-  box-shadow: var(--focus-ring), inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--focus-ring), var(--e-sunken);
 }
 
 #output { min-height: 132px; }
@@ -998,7 +1015,7 @@ input[type="search"]:focus {
 .search-field .icon { position: absolute; left: 10px; pointer-events: none; }
 .search-field input {
   width: 200px;
-  padding: 7px 12px 7px 30px !important;
+  padding: var(--sp-tight) 12px var(--sp-tight) 30px!important;
   font-family: var(--font-sans) !important;
   font-size: var(--fs-small) !important;
   border-radius: var(--radius-pill) !important;
@@ -1103,7 +1120,7 @@ input[type="search"]:focus {
   border-radius: var(--radius-pill);
   background: var(--s-3);
   border: 1px solid var(--hairline);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.14);
+  box-shadow: var(--e-track);
   transition: background-color var(--t-standard) var(--ease-standard), border-color var(--t-standard) var(--ease-standard);
 }
 
@@ -1113,7 +1130,7 @@ input[type="search"]:focus {
   width: 20px; height: 20px;
   border-radius: 50%;
   background: linear-gradient(180deg, #ffffff, #dfe4ec);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--e-knob);
   transition: transform var(--t-standard) var(--ease-spring);
 }
 
@@ -1129,8 +1146,8 @@ input[type="search"]:focus {
 .pill-toggle-face {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 13px;
+  gap: var(--sp-tight);
+  padding: var(--sp-tight) var(--sp-3);
   border-radius: var(--radius-pill);
   border: 1px solid var(--hairline);
   background: var(--s-1);
@@ -1165,7 +1182,7 @@ input[type="search"]:focus {
   content: "";
   flex: none;
   width: 15px; height: 15px;
-  margin-top: 2px;
+  margin-top: var(--sp-hair);
   background-color: currentColor;
   -webkit-mask: var(--banner-icon) center / contain no-repeat;
   mask: var(--banner-icon) center / contain no-repeat;
@@ -1209,7 +1226,7 @@ input[type="search"]:focus {
   border-radius: var(--radius-pill);
   background: var(--s-3);
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--e-sunken);
 }
 .coverage-fill {
   display: block;
@@ -1280,7 +1297,7 @@ input[type="search"]:focus {
 .badge {
   display: inline-block;
   margin-left: var(--sp-2);
-  padding: 2px 8px;
+  padding: var(--sp-hair) var(--sp-2);
   border-radius: var(--radius-pill);
   border: 1px solid;
   font-size: 10.5px;
@@ -1297,8 +1314,8 @@ input[type="search"]:focus {
 .flag {
   display: inline-block;
   margin-right: var(--sp-1);
-  padding: 1px 6px;
-  border-radius: 6px;
+  padding: var(--sp-hair) var(--sp-tight);
+  border-radius: var(--radius-2xs);
   border: 1px solid var(--hairline);
   background: var(--s-1);
   color: var(--muted);
@@ -1479,7 +1496,7 @@ td.expired-cell { color: var(--err); }
 .segmented {
   position: relative;
   display: inline-flex;
-  padding: 3px;
+  padding: var(--sp-hair);
   border-radius: var(--radius-pill);
   background: var(--s-1);
   border: 1px solid var(--hairline);
@@ -1508,7 +1525,7 @@ td.expired-cell { color: var(--err); }
   font-size: var(--fs-small);
   font-weight: 560;
   color: var(--muted);
-  padding: 6px 14px;
+  padding: var(--sp-tight) var(--sp-3);
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: color var(--t-quick) var(--ease-standard);
@@ -1540,12 +1557,12 @@ td.expired-cell { color: var(--err); }
   position: absolute;
   top: -5px; left: 50%;
   width: 10px; height: 10px;
-  margin-left: -5px;
+  margin-left: calc(-1 * var(--sp-1));
   transform: rotate(45deg);
   background: inherit;
   border-left: 1px solid var(--hairline-strong);
   border-top: 1px solid var(--hairline-strong);
-  border-radius: 2px;
+  border-radius: var(--radius-tip);
 }
 .popover.is-above .popover-arrow {
   top: auto; bottom: -5px;
@@ -1640,9 +1657,9 @@ dialog.sheet.is-closing::backdrop { animation: veil-out var(--t-quick) var(--eas
 .tablist {
   position: relative;
   display: flex;
-  gap: 2px;
+  gap: var(--sp-hair);
   margin: var(--sp-4) var(--sp-5) 0;
-  padding: 3px;
+  padding: var(--sp-hair);
   border-radius: var(--radius-pill);
   background: var(--s-1);
   border: 1px solid var(--hairline);
@@ -1674,7 +1691,7 @@ dialog.sheet.is-closing::backdrop { animation: veil-out var(--t-quick) var(--eas
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--sp-tight);
   height: 32px;
   border: 0;
   background: transparent;
@@ -1746,7 +1763,7 @@ dialog.sheet.is-closing::backdrop { animation: veil-out var(--t-quick) var(--eas
 }
 .skel-line, .skel-cell {
   display: block;
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   background: linear-gradient(90deg, var(--s-2), var(--s-3), var(--s-2));
   animation: skel-pulse var(--t-pulse) var(--ease-standard) infinite alternate;
 }
@@ -1803,7 +1820,7 @@ dialog.sheet.is-closing::backdrop { animation: veil-out var(--t-quick) var(--eas
   font: inherit;
   font-size: 12px;
   font-weight: 580;
-  padding: 4px 10px;
+  padding: var(--sp-1) var(--sp-snug);
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: background-color var(--t-quick) var(--ease-standard), transform var(--t-instant) var(--ease-spring);
@@ -1864,8 +1881,8 @@ dialog.sheet.is-closing::backdrop { animation: veil-out var(--t-quick) var(--eas
 .chip-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 14px;
+  gap: var(--sp-tight);
+  padding: var(--sp-2) var(--sp-3);
   border-radius: var(--radius-pill);
   border: 1px solid var(--hairline);
   background: var(--s-1);
@@ -1938,7 +1955,7 @@ dialog.sheet.is-closing::backdrop { animation: veil-out var(--t-quick) var(--eas
   z-index: var(--z-nav);
   display: none;
   gap: var(--sp-1);
-  padding: 6px;
+  padding: var(--sp-tight);
   border-radius: var(--radius-pill);
   width: min(100% - var(--sp-5), 430px);
 }
@@ -1948,8 +1965,8 @@ dialog.sheet.is-closing::backdrop { animation: veil-out var(--t-quick) var(--eas
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 8px;
+  gap: var(--sp-tight);
+  padding: var(--sp-snug) var(--sp-2);
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: transparent;
@@ -1974,7 +1991,7 @@ dialog.sheet.is-closing::backdrop { animation: veil-out var(--t-quick) var(--eas
     color-mix(in srgb, var(--accent) 92%, black 8%));
   color: var(--accent-ink);
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: var(--e-inset);
 }
 [data-theme="dark"] .bar-primary { color: #080e1a; }
 .bar-primary:hover { color: var(--accent-ink); background: linear-gradient(180deg,

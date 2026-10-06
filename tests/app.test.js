@@ -809,3 +809,47 @@ test('icon-only controls all carry an accessible name', () => {
     assert.ok(tab.textContent.trim().length > 0, 'tab needs a visible label');
   }
 });
+
+test('scrollable regions and the audit table are keyboard reachable', () => {
+  const realm = boot();
+  const { document } = realm;
+  const wrap = document.getElementById('table-wrap');
+  assert.equal(wrap.getAttribute('tabindex'), '0');
+  assert.equal(wrap.getAttribute('role'), 'region');
+  assert.equal(wrap.getAttribute('aria-label'), 'Parsed cookies');
+
+  for (const snippet of document.querySelectorAll('.snippet')) {
+    assert.equal(snippet.getAttribute('tabindex'), '0', 'scrollable snippets need a tab stop');
+  }
+});
+
+test('the options panel reports its state to assistive tech from both triggers', () => {
+  const realm = boot();
+  const { document, clock } = realm;
+  const toggle = document.getElementById('options-toggle');
+  const bar = document.getElementById('bar-options');
+
+  bar.click();
+  assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+  assert.equal(bar.getAttribute('aria-expanded'), 'true');
+
+  realm.fire('keydown', { key: 'Escape' });
+  clock.runAll();
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(bar.getAttribute('aria-expanded'), 'false');
+});
+
+test('the guide dialog hands the page back when it closes', () => {
+  const realm = boot();
+  const { document, clock } = realm;
+  const dialog = document.getElementById('guide-dialog');
+  const trigger = document.getElementById('empty-guide');
+
+  trigger.click();
+  assert.equal(dialog.open, true);
+
+  // the backdrop click path (target === dialog itself)
+  dialog.dispatchEvent({ type: 'click', target: dialog });
+  clock.runAll();
+  assert.equal(dialog.open, false);
+});

@@ -352,7 +352,7 @@
           </div>
         </div>
 
-        <div class="table-wrap glass-sm" id="table-wrap" hidden>
+        <div class="table-wrap glass-sm" id="table-wrap" role="region" aria-label="Parsed cookies" tabindex="0" hidden>
           <table id="cookie-table">
             <caption class="sr-only">Cookies parsed from your input, with domain, expiry and flags</caption>
             <thead>
@@ -569,7 +569,7 @@
             <li>Right-click the first <code>gemini.google.com</code> request → <strong>Copy</strong> → <strong>Copy as cURL</strong>.</li>
             <li>Paste the whole command into the converter above.</li>
           </ol>
-          <pre class="snippet">curl 'https://gemini.google.com/app' \
+          <pre class="snippet" tabindex="0">curl 'https://gemini.google.com/app' \
   -H 'cookie: SID=…; HSID=…; SAPISID=…'</pre>
         </div>
 
@@ -589,7 +589,7 @@
             <li>On <code>gemini.google.com</code>, open Cookie-Editor → <strong>Export</strong> → <strong>Export as JSON</strong>.</li>
             <li>Paste the array above — or use DevTools → Application → Cookies → <em>Copy all as JSON</em>.</li>
           </ol>
-          <pre class="snippet">[{ "domain": ".gemini.google.com", "name": "SID",
+          <pre class="snippet" tabindex="0">[{ "domain": ".gemini.google.com", "name": "SID",
    "value": "…", "expirationDate": 1893456000 }]</pre>
         </div>
 

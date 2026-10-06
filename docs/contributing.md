@@ -28,7 +28,7 @@ short and strict — keeping them is what lets it stay dependency-free.
 git clone https://github.com/KetanDutt/Cookie-Converter
 cd Cookie-Converter
 npm run serve        # http://localhost:8080 (python3 or `npm run serve:node`)
-npm run verify       # checks + 107 tests, ~1 s
+npm run verify       # checks + 110 tests, ~1 s
 ```
 
 There is nothing to install — no package manager step exists at all, here or in

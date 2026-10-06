@@ -131,7 +131,7 @@ has no runtime or development dependencies, by design.
 
 ```bash
 npm run check     # versions, DOM wiring, CSP, docs links, theme tokens, hygiene
-npm test          # 107 tests: engine + UI integration
+npm test          # 110 tests: engine + UI integration
 npm run verify    # both, in one go — the project's only gate
 npm run serve     # static preview on :8080 (Python or `serve:node`)
 ```

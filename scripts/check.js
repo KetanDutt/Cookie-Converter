@@ -422,7 +422,82 @@ if (!/:focus-visible/.test(css)) fail('the global :focus-visible ring disappeare
 else ok('focus rings are drawn for every focusable element');
 
 /* ------------------------------------------------------------------ *
- * 9 · CSP allows exactly what the app needs
+ * 9 · `hidden` outranks every component's display value
+ * ------------------------------------------------------------------ */
+
+section('Hidden regions');
+
+// The app hides 14 regions with the `hidden` attribute. Author `display` rules
+// beat the UA's `[hidden] { display: none }`, so without an explicit guard those
+// regions would stay on screen (this shipped once — the empty state, the status
+// banner and back-to-top all ignored `hidden`).
+if (!/\[hidden\]\s*\{\s*display:\s*none\s*!important/.test(css)) {
+  fail('style.css lost its `[hidden] { display: none !important; }` guard — regions the app hides would stay visible');
+} else {
+  const displayClasses = new Set(Array.from(
+    css.matchAll(/\.([a-z][a-z0-9-]+)\s*\{[^}]*display:\s*(?!none)/g), (m) => m[1]));
+  ok(`the [hidden] guard covers ${displayClasses.size} display-setting component(s)`);
+}
+
+/* ------------------------------------------------------------------ *
+ * 10 · Scroll containers are reachable from the keyboard
+ * ------------------------------------------------------------------ */
+
+section('Scrollable regions');
+
+const scrollContainers = [
+  ['#table-wrap', /id="table-wrap"[^>]*tabindex="0"/],
+  ['snippet blocks', /<pre class="snippet"(?![^>]*tabindex="0")/],
+];
+const unreachable = [];
+for (const [label, test] of scrollContainers) {
+  const present = label === '#table-wrap' ? html.includes('id="table-wrap"') : html.includes('class="snippet"');
+  if (!present) continue;
+  const ok_ = label === '#table-wrap' ? test.test(html) : !test.test(html);
+  if (!ok_) unreachable.push(label);
+}
+if (unreachable.length) fail('scrollable region(s) without keyboard access: ' + unreachable.join(', '));
+else ok('every scrollable region is focusable');
+
+/* ------------------------------------------------------------------ *
+ * 11 · Shape and depth come from tokens, not from free-hand values
+ * ------------------------------------------------------------------ */
+
+section('Tokenised shape and depth');
+
+// Components may only use radius tokens (or a circle/inherit); shadows may only
+// be composed from --e-* tokens. This is what keeps 60-odd surfaces looking like
+// one system instead of sixty opinions.
+const componentCss = css.replace(/\/\*[\s\S]*?\*\//g, '');
+const radiusRules = Array.from(componentCss.matchAll(/border-radius:\s*([^;]+);/g), (m) => m[1].trim());
+const strayRadii = [...new Set(radiusRules.filter((value) =>
+  !/^(var\(--radius-[a-z0-9-]+\)|50%|0|inherit)(\s+(var\(--radius-[a-z0-9-]+\)|50%|0|inherit))*(\s*!important)?$/.test(value)))];
+if (strayRadii.length) fail('border-radius values outside the radius tokens: ' + strayRadii.join(' | '));
+else ok(`all ${radiusRules.length} border-radius declaration(s) use radius tokens`);
+
+const shadowRules = Array.from(componentCss.matchAll(/box-shadow:\s*([^;]+);/g), (m) => m[1].replace(/\s+/g, ' ').trim());
+const strayShadows = [...new Set(shadowRules.filter((value) =>
+  !/^(none|var\(--[a-z0-9-]+\)(,\s*var\(--[a-z0-9-]+\))*)$/.test(value)))];
+if (strayShadows.length) fail('box-shadow values outside the depth tokens: ' + strayShadows.join(' | '));
+else ok(`all ${shadowRules.length} box-shadow declaration(s) compose depth tokens`);
+
+// Spacing stays on the documented rhythm: 2px half-steps, then 4px multiples.
+const spacingRules = Array.from(componentCss.matchAll(
+  /^\s*(?:padding|margin|gap|row-gap|column-gap|padding-block|padding-inline|margin-top|margin-bottom|margin-left|margin-right)\s*:\s*([^;!]+);/gm), (m) => m[1].trim());
+const straySpacing = [...new Set(spacingRules.filter((value) => {
+  if (/var\(|auto|calc\(|%|em|rem/.test(value)) return false;
+  return value.split(/\s+/).some((part) => {
+    const px = part.match(/^(-?\d+(?:\.\d+)?)px$/);
+    if (!px) return false;
+    const n = Math.abs(parseFloat(px[1]));
+    return n !== 1 && n % 2 !== 0;   // 1px is the hairline/optical nudge, not rhythm
+  });
+}))];
+if (straySpacing.length) warn('spacing values off the 2px/4px rhythm: ' + straySpacing.join(' | '));
+else ok(`all ${spacingRules.length} spacing declaration(s) sit on the rhythm`);
+
+/* ------------------------------------------------------------------ *
+ * 12 · CSP allows exactly what the app needs
  * ------------------------------------------------------------------ */
 
 section('Content-Security-Policy');
@@ -444,7 +519,7 @@ if (inlineHandler) fail('index.html uses an inline event handler (blocked by CSP
 if (!inlineStyle && !inlineHandler) ok('no inline styles or event handlers in the markup');
 
 /* ------------------------------------------------------------------ *
- * 10 · No dynamic innerHTML (XSS surface)
+ * 13 · No dynamic innerHTML (XSS surface)
  * ------------------------------------------------------------------ */
 
 section('Injection safety');
@@ -460,7 +535,7 @@ if (found.length) fail('dynamic code execution found: ' + found.join(', '));
 else ok('no document.write / eval / new Function');
 
 /* ------------------------------------------------------------------ *
- * 11 · The duplicated light palette stays identical
+ * 14 · The duplicated light palette stays identical
  * ------------------------------------------------------------------ */
 
 section('Theme tokens');
@@ -481,7 +556,7 @@ if (lightBlocks.length !== 2) {
 }
 
 /* ------------------------------------------------------------------ *
- * 12 · Everything referenced actually exists
+ * 15 · Everything referenced actually exists
  * ------------------------------------------------------------------ */
 
 section('File references');
@@ -540,7 +615,7 @@ if (missingFormats.length) fail('FORMATS is missing: ' + missingFormats.join(', 
 else ok('engine FORMATS covers all documented input formats');
 
 /* ------------------------------------------------------------------ *
- * 13 · Shipped file set & repository hygiene
+ * 16 · Shipped file set & repository hygiene
  * ------------------------------------------------------------------ */
 
 section('Shipped files');
@@ -581,7 +656,7 @@ if (tracked) {
 }
 
 /* ------------------------------------------------------------------ *
- * 14 · License metadata agrees with LICENSE
+ * 17 · License metadata agrees with LICENSE
  * ------------------------------------------------------------------ */
 
 section('License');

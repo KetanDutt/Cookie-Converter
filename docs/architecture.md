@@ -159,7 +159,7 @@ Two suites, both dependency-free (`node:test`):
 * `tests/converter.test.js` (61 cases) drives the engine directly: every format,
   every alias, selection rules, value validation, limits, prototype-pollution
   resistance, and a 20 000-row performance smoke test.
-* `tests/app.test.js` (46 cases) boots the real `converter.js`, `ui.js` and
+* `tests/app.test.js` (49 cases) boots the real `converter.js`, `ui.js` and
   `app.js` inside `tests/helpers/dom-stub.js`, a mini DOM that parses the real
   `index.html` and provides a deterministic clock. Integration bugs a static app normally ships with — typo'd ids,
   crashes in `render()`, a handler that never fires — fail the suite.
@@ -189,7 +189,7 @@ Because the value of this tool is *auditability*: four files you can read in a
 sitting, no install step, and a deployment that is literally `git push`. A build
 pipeline would add a supply chain without adding correctness. The trade-off is
 that the project relies on its own checks (`npm run verify`) instead of a
-compiler — which is precisely what `scripts/check.js` and the 107 tests are for.
+compiler — which is precisely what `scripts/check.js` and the 110 tests are for.
 
 ## Extension points
 

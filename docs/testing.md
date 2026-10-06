@@ -3,7 +3,7 @@
 ```bash
 npm run verify     # the whole gate: consistency checks, then the test suite
 npm run check      # scripts/check.js only
-npm test           # the 107 tests
+npm test           # the 110 tests
 npm run test:watch # re-run on change
 ```
 
@@ -64,7 +64,7 @@ Coverage by area:
 * **API**: `buildPayload` error codes, custom `required`/`expectedDomains`,
   optional extras, `auditRequired`, defensive copies, empty input.
 
-### 3 · `tests/app.test.js` — UI integration (46 cases)
+### 3 · `tests/app.test.js` — UI integration (49 cases)
 
 `assets/converter.js`, `assets/ui.js` and `assets/app.js` are executed for real
 inside one `node:vm` realm built by `tests/helpers/dom-stub.js`:
@@ -94,7 +94,8 @@ gliding indicator, header veil and back-to-top visibility, the options popover
 dialog from all three entry points, ARIA tab behaviour (click, arrow keys,
 wrapping), empty-state hand-off and return, every sample chip detecting its own
 format, the coverage meter, the large-input skeleton, the Undo toast, the mobile
-bar's Convert mirror, scroll reveal, and accessible names on icon-only controls.
+bar's Convert mirror, scroll reveal, accessible names on icon-only controls, keyboard
+reachability of the scrollable table and snippets, and the dialog's backdrop close.
 
 ---
 
