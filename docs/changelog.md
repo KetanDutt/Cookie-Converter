@@ -4,6 +4,86 @@ All notable changes to this project. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.0] — 2026-11-02
+
+Interface redesign: a **spatial glass** system. The app is now frosted panes over
+a slow field of colour, with one floating capsule of chrome and one lit primary
+action. The material count went down, the geometry got softer and the data got
+flatter. No feature, shortcut, download, offline path or privacy guarantee
+changed; this release only touches how the app looks, moves and reads.
+
+### Added
+
+* **Ambient field** — two accent pools and one violet, 110 px blurred, drifting on
+  52/64/72-second cycles behind the interface. It is the only decoration in the
+  product, and it freezes under `prefers-reduced-motion`.
+* **Three real materials** — translucent surface steps (`--s-1`…`--s-4`), a well
+  for fields, and a `--material-floating` for anything that overlays. Each is a
+  colour token plus a `backdrop-filter` plus a lit top edge, never an ad-hoc
+  `rgba` in a component.
+* **Floating capsule chrome** — the header, the phone thumb bar, the toasts and
+  the back-to-top are glass capsules that hover over the page instead of ruling
+  a band across it.
+* **The lit capsule** — the primary button is a gradient capsule with dark ink
+  (blue with white ink in light mode). It is the only saturated fill in the
+  interface, which is how the eye finds the one action that matters.
+* **Capsule geometry** — pill controls, 20 px fields, 28 px panes, 36 px
+  overlays; the radius scale is now 6/10/14/20/28/36/pill.
+* **Measured glass budget** — the gate now checks that every radius and shadow
+  comes from a token, that no duration is written by hand, and that both themes
+  clear AA on every surface a text colour can land on.
+
+### Changed
+
+* **Type** — 40 px display, 21 px section titles, 15 px body, 13.5 px support,
+  12 px micro; display tracking tightened to −0.045em, body line-height 1.62.
+* **Panes** — glass with a lit edge; the table, the payload and the status
+  colours inside them stay flat so numbers never fight a blur.
+* **Table** — a `--bg-deep` sticky header, 8 px rows, pill badges and flags,
+  unchanged masking and keyboard behaviour.
+* **Coverage gauge** — six cells in a pill track with an accent→violet gradient,
+  green only at full coverage, count still spelled out.
+* **404** — the same glass card, centred, still `script-src 'none'`.
+* **Docs** — `docs/design.md` is rewritten for the new system; the redesign
+  report records the audit, the passes and the refinement.
+
+### Removed
+
+* The 2.3.0 ambient stack: `glass-sm/md/lg/tint` materials, three blur sizes on
+  one page, the grain layer, the pointer-following shine, the gliding nav pill
+  and the `sparkle` icon.
+* Ink-filled primary buttons and square-ish 6 px controls.
+
+### Fixed
+
+Screenshot review turned up six defects that were worth more than the visual
+polish around them:
+
+* **Blank regions on first paint** — `.reveal` started content at `opacity: 0`
+  until an `IntersectionObserver` fired, so a slow observer, a script-less client
+  or a screenshot taken mid-boot could show an empty pane. Entrance is now
+  transform-only: an unrevealed element is offset 4 px and never hidden.
+* **A dead Convert button after pasting** — the button was re-enabled by the
+  150 ms format-detection debounce, so pasting and clicking immediately could hit
+  a disabled button. Input emptiness now sets both Convert buttons before the
+  debounce runs.
+* **Stale nav highlight** — scroll-spy observed `<main>`, which contains the guide
+  section, so the highlight stayed on *Guide* after scrolling back to the top. It
+  now observes the workbench itself.
+* **Squeezed audit table** — cells are 11 px mono, domains ellipsise at 150 px,
+  values keep a 112 px floor, and expiry prints the date with a relative line
+  (`in 12 days`, `expired`) that only appears within 45 days.
+* **Muddy status washes** — banners and notes are a neutral surface with a 3 px
+  status edge; the colour is one mark instead of a tint.
+* **Phones** — action rows put the primary on its own line and its companions
+  side by side, the table says "Swipe for flags and values" instead of ending in
+  a clipped column, a long format badge wraps instead of being cut at 320 px, and
+  the page never scrolls horizontally from 320 px to 1440 px.
+
+Also fixed while in there: "2 comment line(s)" is properly pluralised, the result
+readout no longer repeats the format that the input badge already names, and the
+textarea placeholder shows the real `# Netscape HTTP Cookie File` header.
+
 ## [2.3.0] — 2026-10-06
 
 Interface overhaul: the whole app is rebuilt as a "liquid glass" design system.

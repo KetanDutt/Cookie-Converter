@@ -8,13 +8,12 @@
  * Exposed as `window.UI`:
  *
  *   UI.icon(name, className?)            → SVG element referencing the sprite
- *   UI.toast.show(message, kind, opts?)  → floating glass notification
+ *   UI.toast.show(message, kind, opts?)  → floating notification
  *   UI.popover({trigger, panel})         → anchored popover / mobile sheet
  *   UI.dialog({dialog, triggers})        → native <dialog> with animated
  *                                          enter/exit and focus return
  *   UI.tabs({container})                 → gliding-tab control (ARIA pattern)
  *   UI.reveal(selector)                  → one-shot scroll reveal
- *   UI.shine(root)                       → pointer-tracking button highlight
  *   UI.animateNumber(el, to, opts?)      → counter transitions
  *
  * Design rules honoured here:
@@ -43,10 +42,6 @@
 
   function reducedMotion() {
     return matches('(prefers-reduced-motion: reduce)');
-  }
-
-  function hoverCapable() {
-    return matches('(hover: hover) and (pointer: fine)');
   }
 
   function after(ms, fn) {
@@ -125,7 +120,7 @@
     }
 
     const toast = document.createElement('div');
-    toast.className = 'toast glass-lg toast-' + type;
+    toast.className = 'toast toast-' + type;
     toast.setAttribute('role', 'status');
     toast.dataset.message = message;
 
@@ -460,45 +455,6 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * Pointer-tracking shine for interactive surfaces
-   * ------------------------------------------------------------------ */
-
-  const SHINE_SELECTOR = '.btn, .icon-btn, .nav-item, .segmented button, .bar-btn, .chip-btn';
-
-  function shine(scope) {
-    if (!hoverCapable() || reducedMotion()) return;
-    const host = scope || document;
-    let queued = false;
-    let pending = null;
-
-    host.addEventListener('pointermove', (event) => {
-      const target = event.target;
-      if (!target || typeof target.closest !== 'function') return;
-      const surface = target.closest(SHINE_SELECTOR);
-      if (!surface) return;
-      pending = { surface, x: event.clientX, y: event.clientY };
-      if (queued) return;
-      queued = true;
-      nextFrame(() => {
-        queued = false;
-        if (!pending) return;
-        const rect = pending.surface.getBoundingClientRect();
-        if (rect.width && rect.height) {
-          pending.surface.style.setProperty('--shine-x', (((pending.x - rect.left) / rect.width) * 100).toFixed(2) + '%');
-          pending.surface.style.setProperty('--shine-y', (((pending.y - rect.top) / rect.height) * 100).toFixed(2) + '%');
-          pending.surface.classList.add('has-shine');
-        }
-        pending = null;
-      });
-    }, { passive: true });
-
-    host.addEventListener('pointerleave', (event) => {
-      const target = event.target;
-      if (target && target.classList) target.classList.remove('has-shine');
-    }, { passive: true, capture: true });
-  }
-
-  /* ------------------------------------------------------------------ *
    * Animated counters
    * ------------------------------------------------------------------ */
 
@@ -538,7 +494,6 @@
     dialog: createDialog,
     tabs: createTabs,
     reveal,
-    shine,
     animateNumber,
     reducedMotion,
   };

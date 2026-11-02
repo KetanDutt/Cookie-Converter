@@ -65,9 +65,10 @@ derived for you.
 
 ### Experience
 
-* Liquid-Glass UI with dark/light/system theming, drag & drop, clipboard-file
-  paste, live format detection, filterable audit table, `Ctrl`/`Cmd`+`Enter`
-  to convert, toasts and inline banners.
+* Purpose-built interface — a two-pane glass workbench with dark/light/system
+  theming, drag & drop, clipboard-file paste, live format detection, a
+  filterable audit table, a six-cookie coverage gauge, `Ctrl`/`Cmd`+`Enter` to
+  convert, toasts and inline banners.
 * Fully keyboard accessible, screen-reader labelled, `prefers-reduced-motion`
   and `prefers-contrast` aware, and usable with JavaScript-only (no server
   round-trips anywhere).
@@ -103,7 +104,7 @@ Cookie files are bearer credentials — treat them like passwords and read
 ```
 .nojekyll             Serve the tree verbatim on GitHub Pages (no Jekyll build)
 index.html            App shell, strict CSP, semantic markup
-404.html              Static-host fallback page in the same material language
+404.html              Static-host fallback page in the same design language
 sw.js                 Network-first service worker (offline support)
 site.webmanifest      Installable app metadata
 _headers              CSP + security headers for Netlify / Cloudflare Pages
@@ -111,7 +112,7 @@ assets/
   converter.js        Pure conversion engine (browser global + CommonJS)
   ui.js               UI primitives — icons, toasts, popover, dialog, tabs
   app.js              UI wiring: DOM, files, clipboard, theme, toasts
-  style.css           Liquid-Glass design system (tokens → materials → components)
+  style.css           Spatial glass design system (tokens → base → components)
   favicon.svg         Inline-vector favicon
   icon-maskable.svg   Maskable PWA icon
 tests/
@@ -164,7 +165,8 @@ templates, are in [docs/deployment.md](docs/deployment.md).
 | [Architecture](docs/architecture.md) | Module design, pipeline, performance budget |
 | [API reference](docs/api.md) | `CookieConverter.convert()` and friends |
 | [Testing](docs/testing.md) | The suite, the DOM stub, and how to add cases |
-| [Design system](docs/design.md) | Tokens, glass materials, motion, accessibility |
+| [Design system](docs/design.md) | Tokens, layout model, components, motion, accessibility |
+| [Redesign report](docs/redesign-report.md) | Audit, direction, the nine passes, validation, refinement |
 | [Deployment](docs/deployment.md) | Static hosting, headers, offline behaviour |
 | [FAQ](docs/faq.md) | Short answers to the usual questions |
 | [Changelog](docs/changelog.md) | Version history |
@@ -177,6 +179,12 @@ modify, distribute or create derivative works from it, commercial use is
 prohibited without a separate written licence, and it may not be used to train
 machine-learning models. Licensing questions and commercial permissions:
 [LICENSE](LICENSE) lists the contact address.
+
+The interface's design philosophy is adapted from [Unslop](https://github.com/heydamir/unslop)
+by Damir Sokolovsky ([@heydamir](https://github.com/heydamir)), licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The method — remove the
+effects, decide what the product is, let structure and type carry the interface —
+is theirs; every token, component and line of CSS here is written for this app.
 
 You can always run the official deployment without installing anything — the
 app itself runs entirely in your browser.

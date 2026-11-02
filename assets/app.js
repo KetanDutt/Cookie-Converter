@@ -204,13 +204,15 @@
     return (chars / 1048576).toFixed(1) + ' MB';
   }
 
-  function formatExpiry(entry) {
-    if (!entry.expires) return 'Session';
-    const when = dateFormat.format(new Date(entry.expires * 1000));
-    if (entry.expired) return 'Expired · ' + when;
+  /** Expiry split into a date and a relative note, so a table cell can stack them. */
+  function expiryParts(entry) {
+    if (!entry.expires) return { date: 'Session', rel: '' };
+    const date = dateFormat.format(new Date(entry.expires * 1000));
+    if (entry.expired) return { date: date, rel: 'expired' };
     const days = Math.ceil((entry.expires * 1000 - Date.now()) / 86400000);
-    const rel = days <= 0 ? 'today' : days === 1 ? 'in 1 day' : 'in ' + days + ' days';
-    return when + ' (' + rel + ')';
+    // The countdown only earns its line when it is close enough to act on.
+    if (days > 45) return { date: date, rel: '' };
+    return { date: date, rel: days <= 0 ? 'today' : days === 1 ? 'in 1 day' : 'in ' + days + ' days' };
   }
 
   function setHidden(node, hidden) {
@@ -355,10 +357,15 @@
       valueCell.dataset.index = String(shown.indexOf(entry));
       valueCell.title = reveal ? 'Click to hide this value' : 'Click to reveal this value';
 
+      const expiry = expiryParts(entry);
+      const expiryCell = el('td', entry.expired ? 'expired-cell' : null);
+      expiryCell.appendChild(el('span', null, expiry.date));
+      if (expiry.rel) expiryCell.appendChild(el('span', 'exp-rel', expiry.rel));
+
       row.append(
         nameCell,
-        el('td', null, entry.domain || '\u2014'),
-        el('td', entry.expired ? 'expired-cell' : null, formatExpiry(entry)),
+        el('td', 'domain-cell', entry.domain || '\u2014'),
+        expiryCell,
         flags,
         valueCell
       );
@@ -448,11 +455,15 @@
 
     setDetectBadge(result.format);
     const stats = result.stats || {};
-    const bits = [FORMAT_LABELS[result.format] || result.format];
-    bits.push(result.parsed + (result.parsed === 1 ? ' cookie' : ' cookies') + ' parsed');
-    if (result.parsed) bits.push('in ' + (state.lastDurationMs || 0) + ' ms');
-    if (stats.comments) bits.push(stats.comments + ' comment line(s)');
-    if (stats.skipped) bits.push(stats.skipped + ' line(s) skipped');
+    // The format is already on the input badge; the readout reports the work done.
+    const bits = [result.parsed + (result.parsed === 1 ? ' cookie' : ' cookies') + ' parsed'];
+    if (result.parsed) bits.push((state.lastDurationMs || 0) + ' ms');
+    if (stats.comments) {
+      bits.push(stats.comments + (stats.comments === 1 ? ' comment line' : ' comment lines'));
+    }
+    if (stats.skipped) {
+      bits.push(stats.skipped + (stats.skipped === 1 ? ' line skipped' : ' lines skipped'));
+    }
     if (els.stats) els.stats.textContent = bits.join(' \u00b7 ');
 
     renderCoverage(result);
@@ -755,7 +766,11 @@
   function updateInputMeta() {
     const value = els.input ? els.input.value : '';
     if (els.charCount) {
-      els.charCount.textContent = formatBytes(value.length) + ' / ' + formatBytes(MAX_FILE_BYTES);
+      const size = formatBytes(value.length);
+      // The ceiling only earns its space once the input is close to it.
+      els.charCount.textContent = value.length > MAX_FILE_BYTES * 0.8
+        ? size + ' / ' + formatBytes(MAX_FILE_BYTES)
+        : size;
     }
     setDetectBadge(value.trim() ? CC.detectFormat(value) : 'empty');
 
@@ -767,6 +782,13 @@
 
   let metaTimer = 0;
   function scheduleInputMeta() {
+    // The cheap affordance comes first: after a paste or a fast keystroke the
+    // primary action must be clickable immediately, even though format
+    // detection is debounced (it walks the whole input).
+    const hasInput = Boolean(els.input && els.input.value.trim());
+    if (els.convert) els.convert.disabled = !hasInput;
+    if (els.barConvert) els.barConvert.disabled = !hasInput;
+
     window.clearTimeout(metaTimer);
     metaTimer = window.setTimeout(updateInputMeta, 150);
   }
@@ -849,7 +871,11 @@
         setActiveNav(entry.target.id === 'guide' ? 'guide' : 'converter');
       });
     }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
-    anyOf(els.guide, document.getElementById('converter')).forEach((node) => observer.observe(node));
+    // Observe the workbench rather than <main>: the guide is *inside* main, so
+    // main stays in the band forever and would pin the nav to whatever was
+    // seen last.
+    const workbench = document.querySelector('.workbench') || document.getElementById('converter');
+    anyOf(els.guide, workbench).forEach((node) => observer.observe(node));
   }
 
   /* ======================================================================
@@ -970,8 +996,7 @@
   }
 
   function initMotion() {
-    UI.reveal('.reveal', { stagger: 60 });
-    UI.shine(document);
+    UI.reveal('.reveal', { stagger: 40 });
   }
 
   /* ======================================================================
