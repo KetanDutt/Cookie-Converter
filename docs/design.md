@@ -1,178 +1,180 @@
 # Design system
 
-The interface is a self-contained "liquid glass" system: translucent materials,
-explicit depth, calm motion, and hierarchy carried by spacing and type rather
-than by borders and colour. It is original work — the Apple-ish feel comes from
-principles (translucency, depth, spatial layering), not from copying Apple's
-assets, icons or layouts.
+The interface is an **instrument**: a two-pane workbench on a flat surface, where
+hairlines, type and spacing carry the hierarchy and colour is spent on exactly
+two things — interaction and the six required cookies. There is no blur, no
+glass, no gradient chrome, and no decoration that does not carry information.
 
-Everything lives in `assets/style.css` (tokens → materials → base → components →
-motion → responsive → accessibility) and `assets/ui.js` (behaviour primitives).
-There are no inline styles or scripts anywhere — the strict CSP forbids them — so
-every visual decision is a token or a class.
+Everything lives in `assets/style.css` (tokens → base → chrome → layout →
+controls → readout → states → overlays → motion → responsive → accessibility)
+and `assets/ui.js` (behaviour primitives). There are no inline styles or scripts
+anywhere — the strict CSP forbids them — so every visual decision is a token or
+a class.
 
 ```
-tokens (:root)  →  materials (.glass-sm/md/lg/tint)  →  components  →  motion
+tokens (:root)  →  base  →  chrome  →  panes  →  components  →  motion
 ```
 
 ---
 
-## 1 · Tokens
+## 1 · Personality
+
+| | |
+| --- | --- |
+| **Feels like** | a measuring instrument, not a website: quiet, exact, unhurried |
+| **Users** | developers and self-hosters handling a secret they understand |
+| **Materials** | opaque paper (light) or graphite (dark); 1 px hairlines; no elevation except overlays |
+| **Type** | system sans for prose, system mono for anything the user's data touches |
+| **Colour** | ink + paper + one steel-blue accent; green/amber/red only for status |
+| **Signature** | the *rule-and-gauge* motif: section titles sit on full-width hairlines, and the required-cookie meter is a six-cell instrument, not a progress bar |
+
+Richness is deliberately not distributed. The only saturated surfaces in the
+product are the coverage gauge, the primary button, and the payload block.
+
+## 2 · Tokens
 
 All tokens live in `:root`. The light palette is defined twice, on purpose: once
 inside `@media (prefers-color-scheme: light)` (so the *first paint* already
-matches the OS — no flash of the wrong theme) and once for `[data-theme="light"]`
-(an explicit choice on a dark-preferring OS). The two blocks are marked
-`@light-tokens:start/end`, and `npm run check` fails if they ever drift apart.
+matches the OS) and once for `[data-theme="light"]` (an explicit choice on a
+dark-preferring OS). Both blocks are marked `@light-tokens:start/end`, and
+`npm run check` fails if they drift apart.
 
 | Group | Tokens | Notes |
 | --- | --- | --- |
-| Palette | `--bg`, `--bg-deep`, `--text`, `--text-strong`, `--muted`, `--faint` | light is a real palette, not an inversion |
-| Accents | `--accent`, `--accent-strong`, `--accent-ink`, `--accent-soft`, `--accent-line`, `--violet`, `--violet-soft` | `-soft`/`-line` are the translucent fills and hairline tints |
-| Status | `--ok`, `--warn`, `--err` + `-soft` / `-line` variants | light theme darkens them for contrast |
-| Surfaces | `--s-1 … --s-4`, `--s-hover`, `--row-hover` | four translucency steps: recessed, surface, raised, pressed |
-| Edges | `--hairline`, `--hairline-strong`, `--edge`, `--edge-soft` | 1 px translucent borders + the inner top highlight |
-| Wells | `--well`, `--well-border` | inset reading surfaces (payload, cURL snippet, table head) |
-| Fallback | `--solid`, `--solid-deep` | opaque fills when `backdrop-filter` is missing or transparency is reduced |
-| Geometry | `--radius-tip 2`, `--radius-2xs 6`, `--radius-xs 8` … `--radius-2xl 34`, `--radius-pill` | every `border-radius` in the app is one of these or a circle |
-| Spacing | `--sp-hair 2`, `--sp-tight 6`, `--sp-snug 10`, `--sp-1 … --sp-10` | 4 px rhythm with 2 px half-steps for dense chrome |
-| Type | `--font-sans`, `--font-mono`, `--fs-display/title/head/body/small/micro`, `--lh-*`, `--tr-*` | system fonts only — no web-font requests, ever |
-| Depth | `--e-0/1/2/3`, `--e-inset`, `--e-sunken`, `--e-track`, `--e-knob`, `--e-press`, `--e-halo`, `--e-glow`, `--e-glow-lg`, `--e-primary` | ambient shadows, inset highlights, recessed wells, the pressed state, the accent glow and the primary-button recipe |
-| Blur | `--blur-sm/md/lg`, `--saturate` | 12 / 22 / 34 px, saturated backdrop |
-| Motion | `--t-instant 120`, `--t-quick 180`, `--t-standard 260`, `--t-slow 340`, `--t-sheet 460` | micro, quick, standard, large, sheet |
-| Loops | `--t-drift-a/b`, `--t-spin`, `--t-sweep`, `--t-pulse` | the only looping motion in the app |
-| Easing | `--ease-standard`, `--ease-entrance`, `--ease-exit`, `--ease-spring` | entrances settle, exits leave quickly, springs only overshoot slightly |
-| Layers | `--z-bg 0`, `--z-veil 10`, `--z-content 20`, `--z-nav 30`, `--z-pop 40`, `--z-dialog 50`, `--z-toast 60` | the stacking order, written down once |
+| Palette | `--bg`, `--bg-deep`, `--panel`, `--text`, `--text-strong`, `--muted`, `--faint` | light is warm paper (`#f6f5f1`), dark is graphite (`#0f1011`) |
+| Accent | `--accent`, `--accent-strong`, `--accent-ink`, `--accent-soft`, `--accent-line` | steel blue; used for links, focus, selection, the gauge |
+| Status | `--ok`, `--warn`, `--err` + `-soft` / `-line` | light theme darkens them so both themes clear AA |
+| Surfaces | `--s-1 … --s-4`, `--s-hover`, `--row-hover` | four **opaque** steps: panel, raised, chrome, pressed |
+| Edges | `--hairline`, `--hairline-strong` | 1 px separators; never a shadow where a line will do |
+| Wells | `--well`, `--well-border` | inputs, code blocks, table head — recessed reading surfaces |
+| Ink button | `--solid-ink`, `--solid-ink-hover`, `--solid-ink-text` | the single solid fill; inverted per theme |
+| Geometry | `--radius-2xs 2`, `--radius-xs 4`, `--radius-sm 6`, `--radius-md 8`, `--radius-lg 12`, `--radius-xl 16`, `--radius-pill` | controls 6, panes 12, dialogs 16 |
+| Spacing | `--sp-1 4` … `--sp-10 80` | a strict 4 px rhythm |
+| Type | `--font-sans`, `--font-mono`, `--fs-display 36 / title 20 / head 14 / body 14.5 / small 13 / micro 11.5`, `--lh-tight/snug/body` | system fonts only — no web-font requests, ever |
+| Depth | `--e-1`, `--e-2`, `--e-3`, `--e-ring`, `--e-halo` | overlays only; `-ring` is the focus ring, `-halo` separates a dot from its surface |
+| Motion | `--t-instant 90`, `--t-quick 140`, `--t-standard 200`, `--t-slow 320`, `--t-sheet 240`, `--t-sweep 900`, `--t-pulse 1400` | all durations are tokens |
+| Easing | `--ease-standard`, `--ease-out`, `--ease-in` | no bounce, no overshoot |
+| Layout | `--content-max 1160`, `--header-h 60`, `--gutter 24` | |
+| Layers | `--z-veil 20`, `--z-nav 30`, `--z-pop 40`, `--z-dialog 50` (native top layer), `--z-toast 60` | |
 
-Adding a colour or a duration means adding a token — components never hard-code
-values. `npm run check` enforces the parts that used to rely on discipline:
+`npm run check` enforces the parts that used to rely on discipline:
 
 * the two light blocks must stay byte-identical;
 * browser chrome colours (`theme-color`, the web manifest) must equal `--bg`;
-* **no raw duration** may appear outside a `--t-*` definition (zeroing out in the
-  reduced-motion block excepted);
-* 44 text/background pairs must clear WCAG AA — body ink on each surface step,
-  body ink on each tinted fill, status ink on its own tint, white on accent, and
-  `--muted` must stay visibly apart from `--faint` so the hierarchy survives;
+* **no raw duration** may appear outside a `--t-*` definition;
+* every text/background pair must clear WCAG AA, and `--muted` must stay visibly
+  apart from `--faint` so the hierarchy survives;
 * every `border-radius` and every `box-shadow` must compose tokens, and every
   spacing declaration must sit on the 2 px/4 px rhythm;
 * `[hidden] { display: none !important }` must exist — an author `display`
   declaration outranks the user agent's rule, and without the guard the regions
   the app hides would be painted anyway.
 
-## 2 · Materials
+## 3 · Layout model
 
-| Class | Use | Recipe |
+| Layer | Owner | Notes |
 | --- | --- | --- |
-| `.glass-sm` | lists, groupings, footers | 12 px blur + `--s-1` fill + hairline |
-| `.glass-md` | cards and panels | 22 px blur + `--s-2` gradient + `--e-inset` + `--e-1` |
-| `.glass-lg` | top bar, mobile bar, popovers, dialogs, toasts | 34 px blur + `--s-3` + `--hairline-strong` + `--e-3` |
-| `.glass-tint` | accent-context surfaces (primary buttons, active pills) | accent-soft fill + accent-line border |
+| L0 | page background | flat `--bg`; the only ambient effect is a hairline scroll shadow (`.header-veil`) |
+| L1 | `.workspace` | max 1160 px, 24 px gutters, an intro block then the workbench |
+| L2 | `.pane` | the input pane and the result pane: 1 px border, 12 px radius, opaque `--panel` |
+| L3 | sticky chrome | `.topbar` (60 px, hairline bottom), `.bottombar` (thumb bar ≤ 720 px) |
+| L4 | `.popover` | options: anchored popover on desktop, bottom sheet ≤ 720 px |
+| L5 | `dialog.sheet` | guide: native modal, 760 px, header / tabs / scrollable panel / footer |
+| L6 | `.toast` | bottom-left on desktop, above the thumb bar on phones |
 
-Text and important controls are never translucent: they sit on `--well` or on
-solid fills. `glass-tint` is used where accent context is meaningful — the
-*On-device* chip in the top bar — never as decoration.
+The workbench is `minmax(340px, 400px) 1fr` above 860 px and stacks below it. The
+input pane is sticky on wide screens so it stays next to a long audit table.
 
-Degradation is explicit and always keeps the layout:
-
-* `@supports not (backdrop-filter: …)` → opaque `--solid` fills.
-* `@media (prefers-reduced-transparency: reduce)` → the same opaque fills, plus
-  every well-backed reading surface (inputs, snippets, chips, rows, skeletons).
-* `@media (forced-colors: active)` → system colours, glass removed.
-* `@media (prefers-reduced-motion: reduce)` → animation collapsed to state
-  changes, ambient fields frozen, smooth scrolling off.
-
-## 3 · Depth model
-
-| Layer | Owner | Examples |
-| --- | --- | --- |
-| L0 | `.bg`, `.bg-field`, `.bg-lamp`, `.bg-grain` | ambient light fields that give glass something to refract |
-| L1 | page content | headings, prose, empty state, steps |
-| L2 | `.card` | input card (sticky on wide screens), result card |
-| L3 | floating chrome | `.topbar`, `.bottombar`, `.to-top`, `.header-veil` |
-| L4 | popovers | `#options-panel` (anchored on desktop, sheet ≤ 720 px) |
-| L5 | dialogs | `dialog.sheet` (guide), with a scrim and animated close |
-| L6 | toasts | `.toast-stack` |
-
-Each layer uses a different blur, opacity, shadow and z-index token, so depth is
-legible even with motion disabled.
+Action rows adapt instead of shrinking: above 480 px the primary sits left and the
+secondary actions right; at or below 480 px the primary spans the row and its
+companions share one line under it, so no button ever gets narrower than its label.
+The audit table keeps its markup and semantics on phones and scrolls sideways
+inside its framed region, with a mono hint above it saying so.
 
 ## 4 · Components
 
-* **Top bar** — floating pill that gains material once content scrolls beneath it
-  (`is-scrolled`, set from a passive scroll listener); the nav indicator glides
-  between items and scroll-spy keeps it honest.
-* **Mobile bar** — below 720 px the nav collapses into a thumb-reachable bottom
-  bar with the primary action, guide and options.
-* **Buttons** — `btn-primary` (tinted glass), `btn-glass` (translucent secondary)
-  and `btn-ghost` (text-only), plus `link-btn` for inline actions such as *Show
-  more*. Hover brightens, press compresses, focus draws a ring, `:disabled`
-  desaturates.
-* **Fields** — translucent `textarea` and search inputs on `--well` with a calm
-  focus transition; the character counter, format badge and stale marker update
-  without moving the layout.
-* **Dropzone** — dashed glass, hover/drag raise the icon, a sweep runs while a
-  file is read; it is a real button for keyboards.
-* **Cards** — `--radius-xl` surfaces with a single subtle hover elevation; cards
-  are used for hierarchy, not for every row.
-* **Segmented control** — a gliding glass thumb, `aria-pressed` kept in sync,
-  state carried on the container's `[data-value]`.
-* **Switch** — 38×22 pill with a spring-driven knob that grows on coarse
-  pointers (touch targets).
-* **Checklist + coverage meter** — the six required cookies as status rows
-  (`ok` green, `weak`/`expired` amber, `invalid`/`missing` red) and a meter whose
-  fill scales with `--progress`, animating only `transform`.
-* **Audit table** — sticky header, horizontally scrollable, mono-spaced values
-  masked by default; one click reveals one cell, the switch reveals all.
-* **Notes and banners** — `note-warn` / `note-info` and
-  `banner-ok/warn/err/info`, each with its own masked icon, so states never look
-  alike.
-* **Toasts** — floating glass, max three, deduplicated by message, dismiss on
-  click, auto-dismiss with hover pause, and one can carry an action (Undo after
-  Clear).
-* **Dialog** — native `<dialog>` with a scrim, a rise-and-scale entrance, an
-  animated exit (`is-closing`) and focus returned to the trigger.
-* **Empty and loading states** — a first-run card with two actions, and a
-  skeleton that matches the real result card for very large inputs.
-* **404 page** — the same materials and tokens, with `script-src 'none'`: it
-  animates with pure CSS and never depends on JavaScript to become visible.
+* **Top bar** — brand, two underlined text tabs, options and theme icon buttons.
+  A hairline and a 16 px scroll gradient appear once the page moves
+  (`.topbar.is-scrolled`, `.header-veil.is-active`).
+* **Buttons** — three weights and nothing else: `btn-primary` (solid ink),
+  `btn-secondary` (panel + hairline), `btn-ghost` (text). Height 34 px (44 px on
+  coarse pointers), 6 px radius, one hover surface, a brightness press. Disabled
+  is a state, not a dimmer: `.btn-primary:disabled` drops to `--s-3` with a
+  hairline and `--faint` text, so an inactive Convert reads as empty rather than
+  as a washed-out primary.
+* **Fields** — mono textarea on `--well` with a 1 px border; focus swaps the
+  border to the accent and adds a 3 px soft ring. The character counter, format
+  badge and stale marker update in place, never shifting layout.
+* **Format badge** — a state dot plus `Detected: …` in mono; the dot turns accent
+  and the chip tints once a format is recognised. The label carries the meaning.
+* **Dropzone** — a dashed hairline row that becomes a solid accent line on hover,
+  drag-over or focus; a 2 px sweep runs only while a file is being read.
+* **Panes** — one bordered surface per job. Section titles (`Required cookies`,
+  `Cookies found`, `Generated payload`) sit on a hairline that spans the pane.
+* **Coverage gauge** — six cells in an 8 px track; fill scales with `--progress`
+  on `transform`, ticks are drawn with a repeating gradient, and the count is
+  spelled out (`6/6`) so colour is never the only signal. It turns green only at
+  full coverage.
+* **Checklist** — one row per required cookie: status glyph, mono name, domain,
+  text badge. Status is icon + word + colour, never colour alone.
+* **Audit table** — sticky header on `--well`, 6 px vertical rhythm, 11 px mono
+  cells, mono values masked by default; one click reveals one cell, the toggle
+  reveals all. Domains ellipsise at 150 px, values keep a 112 px floor, and
+  expiry prints the date with a relative line (`in 12 days`, `expired`) that only
+  appears within 45 days of expiry — a countdown is only worth a line when it
+  changes a decision.
+* **Notes & banners** — banners are a neutral `--s-2` surface with a 3 px status
+  edge, so the colour is one deliberate mark instead of a tinted slab; notes are
+  plain text with a status dot and mono headings, except the placeholder warning,
+  the one note that keeps a tint because it changes what you should do next.
+  Banners are `role="status"`.
+* **Inline code** — mono at 0.92 em with no pill, no border and no fill: in a
+  design that already sets every value in mono, a grey chip on `gemini.google.com`
+  inside a sentence is noise. Code blocks keep their own surface.
+* **Segmented control** — a 26 px well with two buttons; the active one is a
+  raised panel with `box-shadow: --e-1`.
+* **Switch** — 34 × 20 px track, 12 px knob, accent when on; the whole row is the
+  label, so the touch target is 44 px.
+* **Popover / dialog / tabs** — hairline borders, one shadow token, underline tabs
+  driven by `aria-selected`, focus returned to the trigger on close.
+* **Empty state** — real product content: the six required cookie names and the
+  payload shape, plus two actions. No illustration.
+* **404 page** — same tokens, `script-src 'none'`, a ruled block with the code,
+  the message and two actions; it needs no JavaScript to be visible.
 
 ## 5 · Motion
 
-* Durations come from the tokens: 120 ms micro-feedback, 180 ms quick state
-  changes, 260 ms standard transitions, 340 ms large movements, 460 ms sheets.
-* Interactive elements use `--ease-spring`; entrances use `--ease-entrance`;
-  exits use `--ease-exit` so leaving feels decisive.
-* Only `transform`, `opacity` and `filter` animate — compositing stays on the
-  GPU, and nothing animates `backdrop-filter`.
-* Pointer-tracked shine is rAF-throttled and passive; there is no animation loop
-  anywhere in the app.
-* Entrance choreography: cards rise, table rows stagger 30 ms apart, and
-  `.reveal` only hides content under `@media (scripting: enabled)` so a
-  script-less page still shows everything.
-* `prefers-reduced-motion` disables all of it without changing layout.
+* 90 ms for state flips, 140 ms for hover/press, 200 ms for overlays, 320 ms for
+  entrances, 240 ms for the dialog. All from tokens.
+* Only `transform`, `opacity` and `filter` animate; nothing animates layout, blur
+  or colour-with-layout.
+* Entrances are one short fade-and-rise per pane (40 ms apart), once. There is no
+  parallax, pulsing, marquee or pointer tracking.
+* `.reveal` never hides content: an unrevealed element is only offset by 4 px
+  and eases to its place, so a slow observer, a script-less page or a screenshot
+  taken mid-boot can never show a blank pane.
+* `prefers-reduced-motion: reduce` removes every transition and animation without
+  changing layout or behaviour.
 
 ## 6 · Accessibility
 
 * Semantic landmarks (`header`, `main`, `footer`, labelled sections), one `<h1>`.
-* Skip link to the converter; visible `:focus-visible` rings on everything
-  focusable, including custom controls.
+* Skip link to the converter; a single global `:focus-visible` ring (`--focus`,
+  2 px, 2 px offset) that is never removed on interactive elements.
 * Live regions: `role="status"` on the banner, `aria-live="polite"` on the toast
-  stack; the options popover tracks `aria-expanded`, the tab list is a real ARIA
-  tablist (arrow keys, Home/End, roving `tabindex`).
-* The audit table has a `<caption>` and `scope="col"` headers; masked values
-  never leak into the accessibility tree.
-* Colour is never the only signal: every status also has a text label
-  (*found*, *expired*, *missing*, …) and an icon.
-* Contrast: the light palette uses darker amber/red than the dark one so both
-  themes keep body text and status colours readable.
-* `prefers-reduced-transparency`, `prefers-reduced-motion` and `forced-colors`
-  are all honoured.
+  stack; the popover tracks `aria-expanded`, the tab list is a real ARIA tablist
+  (arrow keys, Home/End, roving `tabindex`).
+* The audit table has a `<caption>` and `scope="col"` headers; masked values never
+  leak into the accessibility tree.
+* Colour is never the only signal: every status has a word and a glyph, and the
+  coverage meter has a numeric label.
+* Contrast is measured by `npm run check` in both themes; `--muted`/`--faint` are
+  kept at least 1.25× apart so secondary text still reads as secondary.
 * Touch targets: every control declares a ≥ 44 px target inside
-  `@media (pointer: coarse)`, verified by `npm run check`.
-* Printing re-declares the palette instead of inheriting it — dark-theme tokens
-  would otherwise print light text on white paper — and hides every layer except
-  the payload itself.
+  `@media (pointer: coarse)`.
+* `prefers-reduced-transparency`, `prefers-contrast`, `prefers-reduced-motion`,
+  `forced-colors` and print all have explicit rules; print re-declares the palette
+  and keeps only the payload.
 
 ## 7 · Theming behaviour
 
@@ -188,10 +190,11 @@ legible even with motion disabled.
 
 ## 8 · Copy guidelines
 
-* Buttons are verbs: *Convert*, *Copy JSON*, *Download cookie.json*.
+* Name the thing: *Cookie export*, *Required cookies*, *Generated payload*.
+* Buttons are verbs: *Convert*, *Copy JSON*, *Load sample*, *Reset to defaults*.
 * Errors state what happened and what to do next (`error` + `hint`), never just
   "invalid input".
-* The word "on-device" is preferred over "secure"; security claims stay concrete
-  and verifiable.
-* Documentation links appear where the question arises (guide dialog, footer,
-  troubleshooting links in failures).
+* Say what is true instead of what sounds safe: "no upload, no network request,
+  no storage of cookie values" rather than "bank-level security".
+* The payload is described as a password, because that is what it is.
+* No decorative superlatives, no exclamation marks, no emoji.

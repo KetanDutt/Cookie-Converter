@@ -19,7 +19,7 @@ Everything you need to use, deploy, audit and extend the **Gemini Cookie Convert
 | [Architecture](architecture.md) | module layout, parsing pipeline, design decisions, performance budget |
 | [API reference](api.md) | the programmatic engine API (`CookieConverter.convert()` and friends) |
 | [Testing](testing.md) | the 90-test suite, the dependency-free DOM stub, how to add cases |
-| [Design system](design.md) | tokens, glass materials, motion, theming, accessibility |
+| [Design system](design.md) | tokens, layout model, components, motion, theming, accessibility |
 | [Deployment](deployment.md) | GitHub Pages, Netlify, Cloudflare, nginx, `file://`, security headers |
 | [Changelog](changelog.md) | version history |
 

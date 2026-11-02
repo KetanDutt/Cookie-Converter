@@ -6,9 +6,13 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0a0c11",
-  "theme_color": "#0a0c11",
-  "categories": ["developer", "utilities", "security"],
+  "background_color": "#0f1011",
+  "theme_color": "#0f1011",
+  "categories": [
+    "developer",
+    "utilities",
+    "security"
+  ],
   "icons": [
     {
       "src": "assets/favicon.svg",

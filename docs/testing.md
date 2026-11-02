@@ -88,8 +88,8 @@ pretty/minified toggle, clipboard with fallback, both downloads, theming
 (system → explicit → stored), toast dedupe/cap/dismiss, `Ctrl`+`Enter`,
 `Escape`, sample loading, `Clear`, and "no cookie value ever reaches storage".
 
-Design-layer cases added with the glass redesign: scroll-spy navigation and the
-gliding indicator, header veil and back-to-top visibility, the options popover
+Design-layer cases added with the interface redesigns: scroll-spy navigation and
+the active indicator, the hairline scroll shadow and back-to-top visibility, the options popover
 (opening, outside click, `Escape`, both triggers, reset, persistence), the guide
 dialog from all three entry points, ARIA tab behaviour (click, arrow keys,
 wrapping), empty-state hand-off and return, every sample chip detecting its own

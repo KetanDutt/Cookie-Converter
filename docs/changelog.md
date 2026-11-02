@@ -4,6 +4,88 @@ All notable changes to this project. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.4.0] — 2026-11-02
+
+Interface redesign: the liquid-glass layer is gone and the app is rebuilt as a
+quiet instrument — a two-pane workbench on paper (light) or graphite (dark),
+hierarchy carried by hairlines, type and spacing. No feature, shortcut, download,
+offline path or privacy guarantee changed; this release only touches how the app
+looks, moves and reads.
+
+### Added
+
+* **Workbench layout** — input and result sit side by side as two framed panes
+  instead of a stack of floating cards. The result pane opens on a real preview
+  of the six required cookies and the payload shape instead of an illustration.
+* **Six-cell coverage gauge** — the required-cookie meter is now a segmented
+  instrument that turns green only when all six are usable, with the count kept
+  as text (`6/6`) so colour is never the only signal.
+* **Format table** — the five supported inputs are a scannable ruled list with
+  their provenance and a per-row "load sample" action, replacing a chip cloud.
+* **Ink button + tokenised depth** — one solid ink fill for primary actions and
+  a single accent; shadows only lift overlays. `--e-halo`, `--e-ring` and
+  `--solid-ink*` are new tokens.
+* **System theme colours updated** — `theme-color` and the manifest now match
+  the new `--bg` in both schemes.
+
+### Changed
+
+* **Design system** — tokens, surfaces and components rewritten around flat,
+  opaque materials: 4px spacing rhythm, 2–16px radius scale, system sans for
+  prose and system mono for every value the user's data touches.
+* **Chrome is quieter** — the floating glass top bar, ambient gradient fields,
+  grain, progressive-blur veil, pointer-tracking shine and mobile pill bar are
+  replaced by a sticky hairline header, a hairline scroll shadow and a flat
+  thumb bar.
+* **Typography** — one deliberate hierarchy (36/24/20/14/13/11.5), no decorative
+  uppercase labels, tabular numerals for counts, and tighter table typography.
+* **Copy** — headings, empty state, notes and helper text rewritten to say what
+  happens and what to do; the payload is described as a password, not "private".
+* **Accessibility** — focus rings stay global and visible, status keeps an icon
+  *and* a label, the gauge keeps text, touch targets stay at 44px for coarse
+  pointers, and reduced-motion/transparency/contrast/forced-colours and print
+  keep explicit rules.
+
+### Removed
+
+* `glass-sm` / `glass-md` / `glass-lg` / `glass-tint` materials, backdrop blur,
+  ambient background layers, `header-veil` progressive blur, `.seg-thumb`
+  gliding indicator, `.shine` pointer tracking, and the `sparkle` icon.
+
+### Fixed
+
+Screenshot review of the redesign turned up six defects that were worth more than
+the visual polish around them:
+
+* **Blank regions on first paint** — `.reveal` started content at `opacity: 0`
+  until an `IntersectionObserver` fired, so a slow observer, a script-less client
+  or a screenshot taken mid-boot could show an empty pane. Entrance is now
+  transform-only: an unrevealed element is offset 4 px and never hidden.
+* **A dead Convert button after pasting** — the button was re-enabled by the
+  150 ms format-detection debounce, so pasting and clicking immediately could hit
+  a disabled button. Input emptiness now sets both Convert buttons before the
+  debounce runs.
+* **Stale nav highlight** — scroll-spy observed `<main>`, which contains the guide
+  section, so the highlight stayed on *Guide* after scrolling back to the top. It
+  now observes the workbench itself.
+* **Squeezed audit table** — the value column was the first to collapse. Cells are
+  11 px mono, domains ellipsise at 150 px, values keep a 112 px floor, and expiry
+  prints the date with a relative line (`in 12 days`, `expired`) that only
+  appears within 45 days — so a 660 px wrap holds all five columns without a
+  horizontal scrollbar on desktop.
+* **Tinted banners read muddy in dark mode** — banners are now a neutral surface
+  with a 3 px status edge; the colour is one mark instead of a wash. Only the
+  placeholder warning keeps a tint, because it changes what you should do next.
+* **Phones** — action rows put the primary on its own line and its companions
+  side by side, the audit table says "Swipe for flags and values" instead of
+  ending in a clipped column, a long format badge wraps instead of being cut at
+  320 px, and the page no longer scrolls horizontally at any width from 320 px up.
+
+Also fixed while in there: "2 comment line(s)" is now properly pluralised, the
+result readout no longer repeats the format that the input badge already names,
+and the textarea placeholder shows the real `# Netscape HTTP Cookie File` header
+instead of a tab-expanded row of noise.
+
 ## [2.3.0] — 2026-10-06
 
 Interface overhaul: the whole app is rebuilt as a "liquid glass" design system.

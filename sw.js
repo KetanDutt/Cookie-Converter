@@ -13,7 +13,7 @@
  * application files are cached.
  */
 
-const VERSION = '2.3.0';
+const VERSION = '2.4.0';
 const CACHE = 'gcc-static-' + VERSION;
 
 /** Files precached on install so the very first offline load works. */

@@ -44,7 +44,7 @@
    * ======================================================================== */
 
   /** Engine version — kept in sync with package.json (enforced by `npm run check`). */
-  const VERSION = '2.3.0';
+  const VERSION = '2.4.0';
 
   /**
    * Cookies required by gemini-web2api, in the exact order they are emitted.
