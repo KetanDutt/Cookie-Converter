@@ -11,6 +11,10 @@ and `assets/ui.js` (behaviour primitives). There are no inline styles or scripts
 anywhere — the strict CSP forbids them — so every visual decision is a token or
 a class.
 
+The approach is adapted from [Unslop](https://github.com/heydamir/unslop) by
+Damir Sokolovsky ([@heydamir](https://github.com/heydamir)), licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
 ```
 tokens (:root)  →  base  →  chrome  →  panes  →  components  →  motion
 ```

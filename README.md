@@ -166,6 +166,7 @@ templates, are in [docs/deployment.md](docs/deployment.md).
 | [API reference](docs/api.md) | `CookieConverter.convert()` and friends |
 | [Testing](docs/testing.md) | The suite, the DOM stub, and how to add cases |
 | [Design system](docs/design.md) | Tokens, layout model, components, motion, accessibility |
+| [Redesign report](docs/redesign-report.md) | Audit, direction, the nine passes, validation, refinement |
 | [Deployment](docs/deployment.md) | Static hosting, headers, offline behaviour |
 | [FAQ](docs/faq.md) | Short answers to the usual questions |
 | [Changelog](docs/changelog.md) | Version history |
@@ -178,6 +179,12 @@ modify, distribute or create derivative works from it, commercial use is
 prohibited without a separate written licence, and it may not be used to train
 machine-learning models. Licensing questions and commercial permissions:
 [LICENSE](LICENSE) lists the contact address.
+
+The interface's design philosophy is adapted from [Unslop](https://github.com/heydamir/unslop)
+by Damir Sokolovsky ([@heydamir](https://github.com/heydamir)), licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The method — remove the
+effects, decide what the product is, let structure and type carry the interface —
+is theirs; every token, component and line of CSS here is written for this app.
 
 You can always run the official deployment without installing anything — the
 app itself runs entirely in your browser.
