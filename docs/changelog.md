@@ -6,56 +6,58 @@ All notable changes to this project. Format follows
 
 ## [2.4.0] — 2026-11-02
 
-Interface redesign: the liquid-glass layer is gone and the app is rebuilt as a
-quiet instrument — a two-pane workbench on paper (light) or graphite (dark),
-hierarchy carried by hairlines, type and spacing. No feature, shortcut, download,
-offline path or privacy guarantee changed; this release only touches how the app
-looks, moves and reads.
+Interface redesign: a **spatial glass** system. The app is now frosted panes over
+a slow field of colour, with one floating capsule of chrome and one lit primary
+action. The material count went down, the geometry got softer and the data got
+flatter. No feature, shortcut, download, offline path or privacy guarantee
+changed; this release only touches how the app looks, moves and reads.
 
 ### Added
 
-* **Workbench layout** — input and result sit side by side as two framed panes
-  instead of a stack of floating cards. The result pane opens on a real preview
-  of the six required cookies and the payload shape instead of an illustration.
-* **Six-cell coverage gauge** — the required-cookie meter is now a segmented
-  instrument that turns green only when all six are usable, with the count kept
-  as text (`6/6`) so colour is never the only signal.
-* **Format table** — the five supported inputs are a scannable ruled list with
-  their provenance and a per-row "load sample" action, replacing a chip cloud.
-* **Ink button + tokenised depth** — one solid ink fill for primary actions and
-  a single accent; shadows only lift overlays. `--e-halo`, `--e-ring` and
-  `--solid-ink*` are new tokens.
-* **System theme colours updated** — `theme-color` and the manifest now match
-  the new `--bg` in both schemes.
+* **Ambient field** — two accent pools and one violet, 110 px blurred, drifting on
+  52/64/72-second cycles behind the interface. It is the only decoration in the
+  product, and it freezes under `prefers-reduced-motion`.
+* **Three real materials** — translucent surface steps (`--s-1`…`--s-4`), a well
+  for fields, and a `--material-floating` for anything that overlays. Each is a
+  colour token plus a `backdrop-filter` plus a lit top edge, never an ad-hoc
+  `rgba` in a component.
+* **Floating capsule chrome** — the header, the phone thumb bar, the toasts and
+  the back-to-top are glass capsules that hover over the page instead of ruling
+  a band across it.
+* **The lit capsule** — the primary button is a gradient capsule with dark ink
+  (blue with white ink in light mode). It is the only saturated fill in the
+  interface, which is how the eye finds the one action that matters.
+* **Capsule geometry** — pill controls, 20 px fields, 28 px panes, 36 px
+  overlays; the radius scale is now 6/10/14/20/28/36/pill.
+* **Measured glass budget** — the gate now checks that every radius and shadow
+  comes from a token, that no duration is written by hand, and that both themes
+  clear AA on every surface a text colour can land on.
 
 ### Changed
 
-* **Design system** — tokens, surfaces and components rewritten around flat,
-  opaque materials: 4px spacing rhythm, 2–16px radius scale, system sans for
-  prose and system mono for every value the user's data touches.
-* **Chrome is quieter** — the floating glass top bar, ambient gradient fields,
-  grain, progressive-blur veil, pointer-tracking shine and mobile pill bar are
-  replaced by a sticky hairline header, a hairline scroll shadow and a flat
-  thumb bar.
-* **Typography** — one deliberate hierarchy (36/24/20/14/13/11.5), no decorative
-  uppercase labels, tabular numerals for counts, and tighter table typography.
-* **Copy** — headings, empty state, notes and helper text rewritten to say what
-  happens and what to do; the payload is described as a password, not "private".
-* **Accessibility** — focus rings stay global and visible, status keeps an icon
-  *and* a label, the gauge keeps text, touch targets stay at 44px for coarse
-  pointers, and reduced-motion/transparency/contrast/forced-colours and print
-  keep explicit rules.
+* **Type** — 40 px display, 21 px section titles, 15 px body, 13.5 px support,
+  12 px micro; display tracking tightened to −0.045em, body line-height 1.62.
+* **Panes** — glass with a lit edge; the table, the payload and the status
+  colours inside them stay flat so numbers never fight a blur.
+* **Table** — a `--bg-deep` sticky header, 8 px rows, pill badges and flags,
+  unchanged masking and keyboard behaviour.
+* **Coverage gauge** — six cells in a pill track with an accent→violet gradient,
+  green only at full coverage, count still spelled out.
+* **404** — the same glass card, centred, still `script-src 'none'`.
+* **Docs** — `docs/design.md` is rewritten for the new system; the redesign
+  report records the audit, the passes and the refinement.
 
 ### Removed
 
-* `glass-sm` / `glass-md` / `glass-lg` / `glass-tint` materials, backdrop blur,
-  ambient background layers, `header-veil` progressive blur, `.seg-thumb`
-  gliding indicator, `.shine` pointer tracking, and the `sparkle` icon.
+* The 2.3.0 ambient stack: `glass-sm/md/lg/tint` materials, three blur sizes on
+  one page, the grain layer, the pointer-following shine, the gliding nav pill
+  and the `sparkle` icon.
+* Ink-filled primary buttons and square-ish 6 px controls.
 
 ### Fixed
 
-Screenshot review of the redesign turned up six defects that were worth more than
-the visual polish around them:
+Screenshot review turned up six defects that were worth more than the visual
+polish around them:
 
 * **Blank regions on first paint** — `.reveal` started content at `opacity: 0`
   until an `IntersectionObserver` fired, so a slow observer, a script-less client
@@ -68,23 +70,19 @@ the visual polish around them:
 * **Stale nav highlight** — scroll-spy observed `<main>`, which contains the guide
   section, so the highlight stayed on *Guide* after scrolling back to the top. It
   now observes the workbench itself.
-* **Squeezed audit table** — the value column was the first to collapse. Cells are
-  11 px mono, domains ellipsise at 150 px, values keep a 112 px floor, and expiry
-  prints the date with a relative line (`in 12 days`, `expired`) that only
-  appears within 45 days — so a 660 px wrap holds all five columns without a
-  horizontal scrollbar on desktop.
-* **Tinted banners read muddy in dark mode** — banners are now a neutral surface
-  with a 3 px status edge; the colour is one mark instead of a wash. Only the
-  placeholder warning keeps a tint, because it changes what you should do next.
+* **Squeezed audit table** — cells are 11 px mono, domains ellipsise at 150 px,
+  values keep a 112 px floor, and expiry prints the date with a relative line
+  (`in 12 days`, `expired`) that only appears within 45 days.
+* **Muddy status washes** — banners and notes are a neutral surface with a 3 px
+  status edge; the colour is one mark instead of a tint.
 * **Phones** — action rows put the primary on its own line and its companions
-  side by side, the audit table says "Swipe for flags and values" instead of
-  ending in a clipped column, a long format badge wraps instead of being cut at
-  320 px, and the page no longer scrolls horizontally at any width from 320 px up.
+  side by side, the table says "Swipe for flags and values" instead of ending in
+  a clipped column, a long format badge wraps instead of being cut at 320 px, and
+  the page never scrolls horizontally from 320 px to 1440 px.
 
-Also fixed while in there: "2 comment line(s)" is now properly pluralised, the
-result readout no longer repeats the format that the input badge already names,
-and the textarea placeholder shows the real `# Netscape HTTP Cookie File` header
-instead of a tab-expanded row of noise.
+Also fixed while in there: "2 comment line(s)" is properly pluralised, the result
+readout no longer repeats the format that the input badge already names, and the
+textarea placeholder shows the real `# Netscape HTTP Cookie File` header.
 
 ## [2.3.0] — 2026-10-06
 

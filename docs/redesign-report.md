@@ -1,8 +1,10 @@
 # Redesign report — Gemini Cookie Converter 2.4.0
 
-A record of the audit, the direction, the nine implementation passes, the
-validation and the refinement pass that turned this app from a liquid-glass demo
-into a working instrument.
+A record of the audit, the direction, the implementation passes, the validation
+and the refinement passes that turned this app from a liquid-glass demo into a
+working instrument — and then, at the author's direction, re-skinned that
+instrument in a **spatial glass** material system without changing a single
+behaviour.
 
 > Design philosophy adapted from [Unslop](https://github.com/heydamir/unslop) by
 > Damir Sokolovsky (@heydamir), licensed under CC BY 4.0: strip the effects,
@@ -102,79 +104,99 @@ that broke those would have been a downgrade.
 
 ---
 
-## 3 · The direction: a workbench, not a website
+## 3 · The direction: a workbench, in glass
 
-**Personality.** A lab instrument on a desk. Paper in light mode, graphite in
-dark. Flat, opaque, hairline-ruled. The interface has no texture of its own; the
-only saturated colour in the product is the user's own data and one accent for
-interaction. If a rule could be replaced by spacing, it was.
+Two movements, in order.
+
+**First, structure.** A lab instrument on a desk: one input pane, one result pane,
+a table you can audit, an empty result pane that is a *stage* rather than a
+placard, and a guide behind a real dialog. Hierarchy from structure, type and
+spacing — not from effects. That audit and that rebuild stand: the information
+architecture, the type scale, the table, the gauge, the copy and every behaviour
+below are still what ships.
+
+**Second, material.** With the structure holding, the interface was re-skinned on
+a spatial-glass language: a slow field of colour behind the page, translucent
+panes with a lit top edge, a floating capsule of chrome, capsule controls and one
+lit primary action. The discipline that keeps glass from becoming decoration is
+that **containers may be glass; data may not**. The table, the payload, the status
+colours and the gauge sit on flat fills inside the glass, so a number never has to
+compete with a blur.
 
 ### Colour system (real tokens, `assets/style.css`)
 
-| Role | Light | Dark |
+| Role | Dark | Light |
 | --- | --- | --- |
-| Page | `#f6f5f1` | `#0f1011` |
-| Panel | `#ffffff` | `#17181a` |
-| Surface steps | `#ffffff` → `#fbfaf7` → `#f2f0ea` → `#e9e6de` | `#17181a` → `#1c1e20` → `#232629` → `#2b2f33` |
-| Well (fields) | `#f1efea` | `#121314` |
-| Text / strong | `#1b1d20` / `#0b0c0d` | `#e9e8e3` / `#ffffff` |
-| Muted / faint | `#54575c` / `#66696f` | `#a5a39c` / `#8f8d86` |
-| Accent (links, focus, detection) | `#2f4f8f` | `#9db4e4` |
-| Ink button | `#17181a` on white text | `#efeee8` on `#14150f` |
-| OK / warn / error | `#1c6b46` / `#7a5410` / `#a32a22` | `#7ccfa6` / `#e2b878` / `#f0998f` |
-| Hairline | `rgba(20,22,26,.11)` | `rgba(255,255,255,.10)` |
+| Canvas / deep | `#080a0e` / `#05070a` | `#f2f4f7` / `#ecf0f5` |
+| Panel (glass) | `rgba(21,25,34,.68)` | `rgba(255,255,255,.66)` |
+| Surface steps | `rgba(255,255,255,.045 → .11)` | `rgba(255,255,255,.66 → .82)`, `#ffffff`, `#e7ecf3` |
+| Well (fields, table head) | `rgba(6,8,12,.55)` | `rgba(255,255,255,.62)` |
+| Floating (overlays) | `rgba(22,26,35,.82)` | `rgba(252,253,255,.88)` |
+| Text / strong | `#f6f7f9` / `#ffffff` | `#171a20` / `#0a0d12` |
+| Muted / faint | `#a8afbb` / `#7f8896` | `#4d5560` / `#636b77` |
+| Accent / strong | `#91c5ff` / `#b9d9ff` | `#0f63c8` / `#0a56b0` |
+| Violet (gauge, field) | `#b9adff` | `#6658bf` |
+| Lit capsule | `#d6e9ff → #8fc4f7`, ink `#06111d` | `#277bdc → #1267ca`, ink `#ffffff` |
+| OK / warn / error | `#73d9a4` / `#f0c27a` / `#ef9a9a` | `#1b6f47` / `#7a5410` / `#a8322a` |
+| Hairline / lit edge | `rgba(255,255,255,.09)` / `.17` | `rgba(19,27,40,.085)` / `.92` |
 
-Four surface steps, chosen by layer and never by taste; one accent; one solid
-fill (the ink button). Semantic colours are used as a 3 px edge or a 5 px dot,
-never as a wash across a whole block — a tinted slab reads muddy in dark mode and
+Four surface steps chosen by layer, never by taste; one accent for interaction;
+one saturated fill in the whole product (the lit capsule). Semantic colours are a
+3 px edge or a 5 px dot, never a wash — a tinted slab reads muddy in dark mode and
 turns a status into decoration.
+
+The light theme is not the dark theme dimmed: it is the same object on a paper-grey
+desk, with a blue accent and white glass, and it is defined twice (media query and
+`[data-theme]`) so first paint and an explicit choice agree.
 
 ### Type
 
 | Token | Size | Use |
 | --- | --- | --- |
-| `--fs-display` | 36 (30 ≤ 860 px, 28 ≤ 560 px) | the one H1 on the page |
-| H2 | 24 | section titles |
-| `--fs-title` | 20 | pane titles |
-| `--fs-body` | 14.5 | prose, controls |
-| `--fs-small` | 13 | notes, secondary prose |
-| `--fs-micro` | 11.5 | labels, metadata, table cells |
+| `--fs-display` | 40 (32 ≤ 860 px, 28 ≤ 560 px) | the one H1 on the page |
+| H2 | 21 | section titles |
+| `--fs-title` | 15 | pane titles |
+| `--fs-body` | 15 | prose, controls |
+| `--fs-small` | 13.5 | notes, secondary prose |
+| `--fs-micro` | 12 | labels, metadata (tracked caps on micro-labels) |
 | table | 11 mono | user data |
 
 System sans for prose; system mono for **everything the user's data touches** —
 cookie names, domains, expiry, payload, paths, formats, counts. Tabular numerals
-for every number. No decorative uppercase, no tracked-out labels; the only
-uppercase left is content that is uppercase in the source (cookie names).
+for every number. Display tracking is tightened to −0.045em; uppercase survives
+only on true micro-labels and on names that are uppercase in the source.
 
 ### Space, shape, depth
 
-4 px rhythm (`--sp-1` … `--sp-10`), 2/4/6/8/12/16 radii, shadows only on things
-that float (popover, dialog, toast, sticky header). Borders do the work.
+4 px rhythm (`--sp-1` … `--sp-10`); radii 6 / 10 / 14 / 20 / 28 / 36 / pill, so
+controls are capsules, fields are 20, panes are 28 and overlays are 36. Three
+elevations, each carrying a lit inset top edge (`--e-1/2/3`). Blur comes in three
+sizes for three jobs: fields, panes, overlays.
 
 ### Components
 
-Buttons at three weights and nothing else (ink primary / bordered secondary /
-text ghost); one disabled treatment that reads as *inactive* rather than *dimmed
-primary*; fields as mono wells with a single accent focus border and a soft ring;
-panes as bordered surfaces with hairline section rules; a table with a sticky
-header and masked cells; a 34 × 20 switch whose whole row is the label; a native
-`<dialog>` for the guide; a popover that becomes a bottom sheet on phones.
+Floating capsule header (brand tile, wordmark, context label, nav pills, icon
+buttons); three button weights where the primary is the lit capsule; mono wells
+with an accent focus ring; glass panes with sheen and lit edge; a flat sticky-header
+table with masked cells; a pill coverage gauge; status as neutral surface + 3 px
+edge; a native `<dialog>` for the guide; a popover that becomes a sheet on phones;
+a floating thumb bar; glass toasts.
 
 ### The signature detail
 
-**The six-cell coverage gauge.** Six 8 px cells in a track, lit only when the
-cookie they represent is usable, with the count spelled out beside it (`6/6`) so
-colour is never the only signal. It is the one place where the interface is
-allowed to be a little beautiful, and it earns it: it answers the app's real
-question — *can I convert yet?* — at a glance. Everything else stays quiet so
-that this reads as information rather than garnish.
+**The six-cell coverage gauge.** Six cells in a 10 px pill track, filled with an
+accent→violet gradient, turning green only at full coverage, with the count
+spelled out beside it (`6/6`) so colour is never the only signal. It is where the
+interface is allowed to be a little beautiful, and it earns it: it answers the
+app's real question — *can I convert yet?* — at a glance.
 
 ### Motion
 
-90–320 ms, transform/opacity only, entrances once per pane, no parallax, no
-pulse, no pointer tracking. `.reveal` is transform-only: an element is offset
-4 px and eases into place, **never hidden**. `prefers-reduced-motion` removes
-every transition without changing layout or behaviour.
+160 / 280 / 400 ms, transform/opacity/colour only, entrances once per pane.
+`.reveal` is transform-only: an element is offset 4 px and eases into place,
+**never hidden**. The ambient field drifts on 52–72 s cycles and is the only
+continuous motion; `prefers-reduced-motion` removes every animation and
+transition, including that one.
 
 ### Voice
 
@@ -184,9 +206,16 @@ the code calls it.
 
 ---
 
-## 4 · The nine passes
+## 4 · The implementation passes
 
 Each pass touched real files; nothing was mocked and no data was hardcoded.
+
+The rebuild was nine passes over structure and behaviour. The later re-skin was
+eleven section passes over `assets/style.css`, in dependency order — tokens → base
+→ ambient field → chrome → layout → controls → readout → states → overlays →
+motion → responsive → accessibility — with `npm run check` green after every one
+and a screenshot review between them. Each visual defect that review found is
+listed in §6.
 
 **1 · Spacing and alignment.** Introduced the 4 px token scale and applied it to
 every padding, gap and margin in `assets/style.css`; aligned pane heads, section
@@ -326,8 +355,13 @@ Judgement calls, recorded so they are not mistaken for oversights:
   cookies and the payload shape (it is the stage); the guide lists the five
   input formats with provenance and a sample action (it is the reference). Two
   jobs, two presentations, no repeated card grid.
-* **The coverage gauge stays the only flourish.** Every other candidate — the
-  brand mark, the pane heads, the table header — was left plain on purpose.
+* **Only two flourishes, and they are earned.** The ambient field (which is
+  nearly invisible until you stop moving) and the six-cell gauge. Everything else
+  — the brand mark, the pane heads, the table header, the banners — refuses
+  gradient on purpose, which is what makes the lit capsule read as *the* action.
+* **No blur inside a data surface.** The glass stops at the pane edge: table,
+  payload and status keep flat fills and full contrast, and print and reduced
+  transparency flatten the rest.
 
 Final state: `npm run verify` green, 34/34 checks, 110/110 tests, no console
 errors, no horizontal overflow from 320 px to 1440 px, in both themes.

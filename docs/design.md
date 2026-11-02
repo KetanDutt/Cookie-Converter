@@ -1,204 +1,194 @@
 # Design system
 
-The interface is an **instrument**: a two-pane workbench on a flat surface, where
-hairlines, type and spacing carry the hierarchy and colour is spent on exactly
-two things — interaction and the six required cookies. There is no blur, no
-glass, no gradient chrome, and no decoration that does not carry information.
+The interface is **frosted glass over a slow field of colour**: a floating capsule
+of chrome, two translucent panes, and inside them flat surfaces that carry the
+actual work. Nothing floats that does not need to; nothing carrying data is ever
+blurred.
 
-Everything lives in `assets/style.css` (tokens → base → chrome → layout →
-controls → readout → states → overlays → motion → responsive → accessibility)
-and `assets/ui.js` (behaviour primitives). There are no inline styles or scripts
-anywhere — the strict CSP forbids them — so every visual decision is a token or
-a class.
+Everything lives in `assets/style.css` (tokens → base → field → chrome → layout →
+controls → readout → states → overlays → motion → responsive → accessibility) and
+`assets/ui.js` (behaviour primitives). There are no inline styles or scripts
+anywhere — the strict CSP forbids them — so every visual decision is a token or a
+class.
 
 The approach is adapted from [Unslop](https://github.com/heydamir/unslop) by
 Damir Sokolovsky ([@heydamir](https://github.com/heydamir)), licensed under
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-
-```
-tokens (:root)  →  base  →  chrome  →  panes  →  components  →  motion
-```
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The material language
+is a spatial-glass system: translucent panels, lit edges, capsule geometry and a
+lit primary action.
 
 ---
 
 ## 1 · Personality
 
-| | |
-| --- | --- |
-| **Feels like** | a measuring instrument, not a website: quiet, exact, unhurried |
-| **Users** | developers and self-hosters handling a secret they understand |
-| **Materials** | opaque paper (light) or graphite (dark); 1 px hairlines; no elevation except overlays |
-| **Type** | system sans for prose, system mono for anything the user's data touches |
-| **Colour** | ink + paper + one steel-blue accent; green/amber/red only for status |
-| **Signature** | the *rule-and-gauge* motif: section titles sit on full-width hairlines, and the required-cookie meter is a six-cell instrument, not a progress bar |
+Calm, cold, precise. A dark navy canvas with three very slow colour fields behind
+it; one lit capsule per screen; everything else in graphite glass and cool ink.
+Light mode is the same object on a paper-grey desk: white glass, blue accent, the
+same geometry.
 
-Richness is deliberately not distributed. The only saturated surfaces in the
-product are the coverage gauge, the primary button, and the payload block.
+Two rules keep it from becoming decoration:
+
+1. **Glass is for containers, not for content.** Chrome, panes, the popover, the
+   dialog, the toast and the thumb bar are materials. The audit table, the
+   payload, status colours and the coverage gauge sit on flat fills so numbers
+   never have to fight a blur.
+2. **One accent, one lit button.** The accent marks interaction and detection;
+   the gradient capsule is the only saturated fill in the product.
+
+The signature moment is the **six-cell coverage gauge**: six cells in a pill
+track, filled with an accent→violet gradient, turning green at full coverage,
+with the count spelled out (`6/6`) so colour is never the only signal.
+
+---
 
 ## 2 · Tokens
 
-All tokens live in `:root`. The light palette is defined twice, on purpose: once
-inside `@media (prefers-color-scheme: light)` (so the *first paint* already
-matches the OS) and once for `[data-theme="light"]` (an explicit choice on a
-dark-preferring OS). Both blocks are marked `@light-tokens:start/end`, and
-`npm run check` fails if they drift apart.
+### Canvas and ink
 
-| Group | Tokens | Notes |
+| Token | Dark | Light |
 | --- | --- | --- |
-| Palette | `--bg`, `--bg-deep`, `--panel`, `--text`, `--text-strong`, `--muted`, `--faint` | light is warm paper (`#f6f5f1`), dark is graphite (`#0f1011`) |
-| Accent | `--accent`, `--accent-strong`, `--accent-ink`, `--accent-soft`, `--accent-line` | steel blue; used for links, focus, selection, the gauge |
-| Status | `--ok`, `--warn`, `--err` + `-soft` / `-line` | light theme darkens them so both themes clear AA |
-| Surfaces | `--s-1 … --s-4`, `--s-hover`, `--row-hover` | four **opaque** steps: panel, raised, chrome, pressed |
-| Edges | `--hairline`, `--hairline-strong` | 1 px separators; never a shadow where a line will do |
-| Wells | `--well`, `--well-border` | inputs, code blocks, table head — recessed reading surfaces |
-| Ink button | `--solid-ink`, `--solid-ink-hover`, `--solid-ink-text` | the single solid fill; inverted per theme |
-| Geometry | `--radius-2xs 2`, `--radius-xs 4`, `--radius-sm 6`, `--radius-md 8`, `--radius-lg 12`, `--radius-xl 16`, `--radius-pill` | controls 6, panes 12, dialogs 16 |
-| Spacing | `--sp-1 4` … `--sp-10 80` | a strict 4 px rhythm |
-| Type | `--font-sans`, `--font-mono`, `--fs-display 36 / title 20 / head 14 / body 14.5 / small 13 / micro 11.5`, `--lh-tight/snug/body` | system fonts only — no web-font requests, ever |
-| Depth | `--e-1`, `--e-2`, `--e-3`, `--e-ring`, `--e-halo` | overlays only; `-ring` is the focus ring, `-halo` separates a dot from its surface |
-| Motion | `--t-instant 90`, `--t-quick 140`, `--t-standard 200`, `--t-slow 320`, `--t-sheet 240`, `--t-sweep 900`, `--t-pulse 1400` | all durations are tokens |
-| Easing | `--ease-standard`, `--ease-out`, `--ease-in` | no bounce, no overshoot |
-| Layout | `--content-max 1160`, `--header-h 60`, `--gutter 24` | |
-| Layers | `--z-veil 20`, `--z-nav 30`, `--z-pop 40`, `--z-dialog 50` (native top layer), `--z-toast 60` | |
+| `--bg` | `#080a0e` | `#f2f4f7` |
+| `--bg-deep` | `#05070a` | `#ecf0f5` |
+| `--text` / `--text-strong` | `#f6f7f9` / `#ffffff` | `#171a20` / `#0a0d12` |
+| `--muted` / `--faint` | `#a8afbb` / `#7f8896` | `#4d5560` / `#636b77` |
+| `--accent` / `--accent-strong` | `#91c5ff` / `#b9d9ff` | `#0f63c8` / `#0a56b0` |
+| `--violet` | `#b9adff` | `#6658bf` |
+| `--ok` / `--warn` / `--err` | `#73d9a4` / `#f0c27a` / `#ef9a9a` | `#1b6f47` / `#7a5410` / `#a8322a` |
 
-`npm run check` enforces the parts that used to rely on discipline:
+Every pair that carries text is measured by `npm run check` (AA on four surface
+steps, the well, the four tint fills and the accent); the gate is the contract,
+not a spot check.
 
-* the two light blocks must stay byte-identical;
-* browser chrome colours (`theme-color`, the web manifest) must equal `--bg`;
-* **no raw duration** may appear outside a `--t-*` definition;
-* every text/background pair must clear WCAG AA, and `--muted` must stay visibly
-  apart from `--faint` so the hierarchy survives;
-* every `border-radius` and every `box-shadow` must compose tokens, and every
-  spacing declaration must sit on the 2 px/4 px rhythm;
-* `[hidden] { display: none !important }` must exist — an author `display`
-  declaration outranks the user agent's rule, and without the guard the regions
-  the app hides would be painted anyway.
+### Materials
+
+| Token | Value (dark) | Use |
+| --- | --- | --- |
+| `--s-1` / `--panel` | `rgba(21,25,34,.68)` | panes, nav, cards |
+| `--s-2` | `rgba(255,255,255,.045)` | inner surfaces, banners, rows |
+| `--s-3` | `rgba(255,255,255,.075)` | hover, active nav, selected segment |
+| `--s-4` | `rgba(255,255,255,.11)` | pressed, strongest neutral |
+| `--well` | `rgba(6,8,12,.55)` | fields, table header, wells |
+| `--material-floating` | `rgba(22,26,35,.82)` | popover, dialog, toast, thumb bar |
+| `--material-tinted` | `rgba(145,197,255,.10)` | accent-tinted chips |
+| `--edge` | `rgba(255,255,255,.17)` | the lit top edge (`--e-inset`) |
+| `--blur-sm/md/lg` | `12/22/36px` + saturation | field wells → panes → overlays |
+
+Glass is always *material + `backdrop-filter` + lit edge*, and always degrades:
+`prefers-reduced-transparency`, a missing `backdrop-filter` and forced-colours all
+replace it with `--bg-deep`.
+
+### Shape, space, depth, motion
+
+* Radii: 6 / 10 / 14 / 20 / 28 / 36 / pill. Capsules are the default control
+  shape; panes are 28; overlays are 36.
+* Space: 4 px rhythm (`--sp-1` … `--sp-10`); pane padding 20; section breaks 40.
+* Depth: `--e-1` (lit inset + small drop), `--e-2` (panes, nav), `--e-3`
+  (overlays), all carrying the inset top highlight.
+* Motion: 160 / 280 / 400 ms with an out-quint ease. The ambient field drifts on
+  52 / 64 / 72 s periods — visible only if you sit and watch.
+
+---
 
 ## 3 · Layout model
 
 | Layer | Owner | Notes |
 | --- | --- | --- |
-| L0 | page background | flat `--bg`; the only ambient effect is a hairline scroll shadow (`.header-veil`) |
-| L1 | `.workspace` | max 1160 px, 24 px gutters, an intro block then the workbench |
-| L2 | `.pane` | the input pane and the result pane: 1 px border, 12 px radius, opaque `--panel` |
-| L3 | sticky chrome | `.topbar` (60 px, hairline bottom), `.bottombar` (thumb bar ≤ 720 px) |
-| L4 | `.popover` | options: anchored popover on desktop, bottom sheet ≤ 720 px |
-| L5 | `dialog.sheet` | guide: native modal, 760 px, header / tabs / scrollable panel / footer |
-| L6 | `.toast` | bottom-left on desktop, above the thumb bar on phones |
+| L-1 | `.atmosphere` | fixed, `z-index: -1`: two accent fields and one violet, blurred 110 px, drifting |
+| L1 | `.workspace` | max 1180 px, 24 px gutters, clears the floating bar |
+| L2 | `.pane` | the input and result panes: glass, 28 px radius, 1 px hairline, lit edge |
+| L3 | `.topbar` | fixed capsule 16 px from the top: brand, nav pills, icon buttons |
+| L4 | `.popover` | options; anchored on desktop, sheet on phones |
+| L4 | `dialog.sheet` | guide; native modal, blurred backdrop |
+| L5 | `.bottombar` | floating capsule on phones (≤ 720 px) |
+| L6 | `.toast-stack` | bottom-left, above the thumb bar on phones |
 
-The workbench is `minmax(340px, 400px) 1fr` above 860 px and stacks below it. The
-input pane is sticky on wide screens so it stays next to a long audit table.
+The workbench is `minmax(340px, 420px) 1fr` above 860 px, stacked below it. The
+input pane is sticky on wide screens, offset by `nav-top + header + 16`. Scroll
+targets carry `scroll-margin-top` so nothing lands under the floating bar.
 
-Action rows adapt instead of shrinking: above 480 px the primary sits left and the
-secondary actions right; at or below 480 px the primary spans the row and its
-companions share one line under it, so no button ever gets narrower than its label.
-The audit table keeps its markup and semantics on phones and scrolls sideways
-inside its framed region, with a mono hint above it saying so.
+---
 
 ## 4 · Components
 
-* **Top bar** — brand, two underlined text tabs, options and theme icon buttons.
-  A hairline and a 16 px scroll gradient appear once the page moves
-  (`.topbar.is-scrolled`, `.header-veil.is-active`).
-* **Buttons** — three weights and nothing else: `btn-primary` (solid ink),
-  `btn-secondary` (panel + hairline), `btn-ghost` (text). Height 34 px (44 px on
-  coarse pointers), 6 px radius, one hover surface, a brightness press. Disabled
-  is a state, not a dimmer: `.btn-primary:disabled` drops to `--s-3` with a
-  hairline and `--faint` text, so an inactive Convert reads as empty rather than
-  as a washed-out primary.
-* **Fields** — mono textarea on `--well` with a 1 px border; focus swaps the
-  border to the accent and adds a 3 px soft ring. The character counter, format
-  badge and stale marker update in place, never shifting layout.
-* **Format badge** — a state dot plus `Detected: …` in mono; the dot turns accent
-  and the chip tints once a format is recognised. The label carries the meaning.
-* **Dropzone** — a dashed hairline row that becomes a solid accent line on hover,
-  drag-over or focus; a 2 px sweep runs only while a file is being read.
-* **Panes** — one bordered surface per job. Section titles (`Required cookies`,
-  `Cookies found`, `Generated payload`) sit on a hairline that spans the pane.
-* **Coverage gauge** — six cells in an 8 px track; fill scales with `--progress`
-  on `transform`, ticks are drawn with a repeating gradient, and the count is
-  spelled out (`6/6`) so colour is never the only signal. It turns green only at
-  full coverage.
-* **Checklist** — one row per required cookie: status glyph, mono name, domain,
-  text badge. Status is icon + word + colour, never colour alone.
-* **Audit table** — sticky header on `--well`, 6 px vertical rhythm, 11 px mono
-  cells, mono values masked by default; one click reveals one cell, the toggle
-  reveals all. Domains ellipsise at 150 px, values keep a 112 px floor, and
-  expiry prints the date with a relative line (`in 12 days`, `expired`) that only
-  appears within 45 days of expiry — a countdown is only worth a line when it
-  changes a decision.
-* **Notes & banners** — banners are a neutral `--s-2` surface with a 3 px status
-  edge, so the colour is one deliberate mark instead of a tinted slab; notes are
-  plain text with a status dot and mono headings, except the placeholder warning,
-  the one note that keeps a tint because it changes what you should do next.
-  Banners are `role="status"`.
-* **Inline code** — mono at 0.92 em with no pill, no border and no fill: in a
-  design that already sets every value in mono, a grey chip on `gemini.google.com`
-  inside a sentence is noise. Code blocks keep their own surface.
-* **Segmented control** — a 26 px well with two buttons; the active one is a
-  raised panel with `box-shadow: --e-1`.
-* **Switch** — 34 × 20 px track, 12 px knob, accent when on; the whole row is the
-  label, so the touch target is 44 px.
-* **Popover / dialog / tabs** — hairline borders, one shadow token, underline tabs
-  driven by `aria-selected`, focus returned to the trigger on close.
-* **Empty state** — real product content: the six required cookie names and the
-  payload shape, plus two actions. No illustration.
-* **404 page** — same tokens, `script-src 'none'`, a ruled block with the code,
-  the message and two actions; it needs no JavaScript to be visible.
+* **Top bar** — a fixed capsule: 34 px paper tile with the cookie mark, a wordmark,
+  a mono context label, two nav pills, two icon buttons. `.is-scrolled` deepens
+  the material and the border; a soft veil fades content passing underneath.
+* **Nav pills** — 34 px capsules; the active one is `--s-3` with a hairline and
+  `--e-1`. No underlines, no sliding indicator.
+* **Buttons** — three weights: `btn-primary` (the lit gradient capsule, dark ink
+  in dark mode and white in light), `btn-secondary` (`--s-2` + hairline),
+  `btn-ghost` (text only, tighter padding). 40 px tall (44 on coarse pointers),
+  pill radius. Disabled is a state, not a dimmer.
+* **Fields** — mono textarea on `--well` with a lit inset edge, 20 px radius;
+  focus swaps the border to the accent and adds the 4 px soft ring.
+* **Format badge** — a pill with a state dot; it tints accent and gains an accent
+  hairline once a format is recognised.
+* **Dropzone** — a `--s-2` slot with a dashed hairline that turns solid accent on
+  hover, drag-over or focus.
+* **Panes** — one glass surface per job; section rules are lighter than box
+  edges (`--divider`), titles are 14.5/620.
+* **Coverage gauge** — six cells in a 10 px pill track, accent→violet gradient,
+  green at 6/6, count in mono.
+* **Checklist** — status glyph, mono name, domain, status pill. On phones the name
+  wins the space and the domain ellipsises.
+* **Audit table** — flat `--bg-deep` sticky header, 11 px mono cells, masked
+  values, domains ellipsised at 150 px, a relative expiry that only appears
+  within 45 days. Scrolls sideways on phones with a mono hint; blur never enters
+  a cell.
+* **Notes & banners** — neutral `--s-2` with a 3 px status edge; notes are plain
+  text with a status dot and mono headings.
+* **Popover / dialog / toast** — `--material-floating` with `--blur-lg` and
+  `--e-3`; the dialog's backdrop blurs the page behind it.
+* **Thumb bar** — a floating capsule with a lit Convert pill and two quiet
+  actions.
+* **404** — the same glass card, centred, `script-src 'none'`.
+
+---
 
 ## 5 · Motion
 
-* 90 ms for state flips, 140 ms for hover/press, 200 ms for overlays, 320 ms for
-  entrances, 240 ms for the dialog. All from tokens.
-* Only `transform`, `opacity` and `filter` animate; nothing animates layout, blur
-  or colour-with-layout.
-* Entrances are one short fade-and-rise per pane (40 ms apart), once. There is no
-  parallax, pulsing, marquee or pointer tracking.
-* `.reveal` never hides content: an unrevealed element is only offset by 4 px
-  and eases to its place, so a slow observer, a script-less page or a screenshot
-  taken mid-boot can never show a blank pane.
-* `prefers-reduced-motion: reduce` removes every transition and animation without
-  changing layout or behaviour.
+* 160 ms for state flips, 280 ms for hover/overlays, 400 ms for structural
+  entrances; every duration is a `--t-*` token.
+* Only `transform`, `opacity`, `filter` and colours animate.
+* `.reveal` never hides content: an unrevealed element is offset 4 px and eases
+  into place, so a slow observer or a script-less page can never show a blank
+  pane.
+* The ambient field is the only continuous motion, and it is almost imperceptible
+  (52–72 s, `alternate`).
+* `prefers-reduced-motion: reduce` removes every animation and transition,
+  including the drift.
+
+---
 
 ## 6 · Accessibility
 
-* Semantic landmarks (`header`, `main`, `footer`, labelled sections), one `<h1>`.
-* Skip link to the converter; a single global `:focus-visible` ring (`--focus`,
-  2 px, 2 px offset) that is never removed on interactive elements.
-* Live regions: `role="status"` on the banner, `aria-live="polite"` on the toast
-  stack; the popover tracks `aria-expanded`, the tab list is a real ARIA tablist
-  (arrow keys, Home/End, roving `tabindex`).
-* The audit table has a `<caption>` and `scope="col"` headers; masked values never
-  leak into the accessibility tree.
-* Colour is never the only signal: every status has a word and a glyph, and the
-  coverage meter has a numeric label.
-* Contrast is measured by `npm run check` in both themes; `--muted`/`--faint` are
-  kept at least 1.25× apart so secondary text still reads as secondary.
-* Touch targets: every control declares a ≥ 44 px target inside
-  `@media (pointer: coarse)`.
-* `prefers-reduced-transparency`, `prefers-contrast`, `prefers-reduced-motion`,
-  `forced-colors` and print all have explicit rules; print re-declares the palette
-  and keeps only the payload.
+* Contrast: every text/surface pair the gate can enumerate must clear WCAG AA in
+  both themes; muted and faint must stay far enough apart that the hierarchy
+  survives.
+* Focus: a 2 px accent outline with a 4 px soft ring on every focusable element.
+* Touch: 44 px targets under `(pointer: coarse)`.
+* Glass degrades to solid under `prefers-reduced-transparency`, a missing
+  `backdrop-filter`, forced-colours and print.
+* Status is always icon **and** word **and** colour; the gauge always prints its
+  count.
+* Scroll regions are keyboard reachable (`#table-wrap` carries `tabindex="0"`).
+* Print drops the field, the chrome, the actions and the payload block, and
+  re-inks the text.
+
+---
 
 ## 7 · Theming behaviour
 
-1. Before JavaScript runs, `prefers-color-scheme` decides (no flash).
-2. `app.js` reads the stored preference (`gcc-theme`) and applies it if present.
-3. With no stored preference it follows the OS **live** — a `matchMedia` change
-   listener re-applies the theme when the OS switches at sunset.
-4. Pressing the theme button pins an explicit choice forever (until storage is
-   cleared); the button's tooltip and `aria-label` always describe the *next*
-   action.
-5. `meta[name="theme-color"]` and the web manifest are checked against `--bg`, so
-   browser chrome always matches the page in both schemes.
+Dark is the default (`:root`, `color-scheme: dark`). Light is defined twice —
+`@media (prefers-color-scheme: light)` for first paint and `[data-theme="light"]`
+for an explicit choice — and the two blocks must be byte-identical (the gate
+compares them). `theme-color`, the manifest and the 404 all read the same `--bg`.
+
+---
 
 ## 8 · Copy guidelines
 
-* Name the thing: *Cookie export*, *Required cookies*, *Generated payload*.
-* Buttons are verbs: *Convert*, *Copy JSON*, *Load sample*, *Reset to defaults*.
-* Errors state what happened and what to do next (`error` + `hint`), never just
-  "invalid input".
-* Say what is true instead of what sounds safe: "no upload, no network request,
-  no storage of cookie values" rather than "bank-level security".
-* The payload is described as a password, because that is what it is.
-* No decorative superlatives, no exclamation marks, no emoji.
+Say what happens, in the second person, without adjectives. "This payload is a
+password." "Six cookies from `gemini.google.com` are all it needs." Name things
+by what the user does, not by what the code calls them. Numbers are mono and
+carry units; plurals are real; no exclamation marks.

@@ -65,7 +65,7 @@ derived for you.
 
 ### Experience
 
-* Purpose-built interface — a two-pane workbench with dark/light/system
+* Purpose-built interface — a two-pane glass workbench with dark/light/system
   theming, drag & drop, clipboard-file paste, live format detection, a
   filterable audit table, a six-cookie coverage gauge, `Ctrl`/`Cmd`+`Enter` to
   convert, toasts and inline banners.
@@ -112,7 +112,7 @@ assets/
   converter.js        Pure conversion engine (browser global + CommonJS)
   ui.js               UI primitives — icons, toasts, popover, dialog, tabs
   app.js              UI wiring: DOM, files, clipboard, theme, toasts
-  style.css           Workbench design system (tokens → base → components)
+  style.css           Spatial glass design system (tokens → base → components)
   favicon.svg         Inline-vector favicon
   icon-maskable.svg   Maskable PWA icon
 tests/
