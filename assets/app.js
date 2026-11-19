@@ -141,7 +141,7 @@
   const MAX_FILE_BYTES = CC.LIMITS.MAX_CHARS;
   const MAX_TABLE_ROWS = 400;          // rows rendered per page
   const MAX_TABLE_ROWS_HARD = 4000;    // upper bound for repeated "show more"
-  const AUTO_CONVERT_LIMIT = 512 * 1024;
+  const AUTO_CONVERT_LIMIT = 2 * 1024 * 1024;  // 2 MiB — auto-convert on file drop
   const SKELETON_THRESHOLD = 192 * 1024; // show a loading state above this
   const MASK = '\u2022'.repeat(14);
   const PREFS_KEY = 'gcc-prefs';
